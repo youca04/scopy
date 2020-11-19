@@ -10,7 +10,7 @@ apt-get install -y jq
 
 REPO_LOCAL=/home/docker/scopy-flatpak
 cd "$REPO_LOCAL"
-git pull && git checkout master
+git pull && git checkout sshpass
 
 # check the number of elements in the json file in order to get the last element, which is Scopy
 cnt=$( echo `jq '.modules | length' org.adi.Scopy.json` )
