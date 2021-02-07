@@ -55,6 +55,10 @@
 #include <QJsonDocument>
 #include <QDesktopServices>
 #include <QSpacerItem>
+#if __ANDROID__
+	#include <QtAndroidExtras/QtAndroid>
+	#include <QAndroidJniEnvironment>
+#endif
 
 #include <iio.h>
 
@@ -70,6 +74,9 @@
 #include <libm2k/m2kexceptions.hpp>
 #include <libm2k/digital/m2kdigital.hpp>
 #include "scopyExceptionHandler.h"
+#ifdef __ANDROID__
+#include <libusb.h>
+#endif
 
 #define TIMER_TIMEOUT_MS 5000
 #define ALIVE_TIMER_TIMEOUT_MS 5000
@@ -106,11 +113,19 @@ ToolLauncher::ToolLauncher(QString prevCrashDump, QWidget *parent) :
 	m_adc_tools_failed(false),
 	m_dac_tools_failed(false),
 	about(nullptr)
+#ifdef __ANDROID__
+	,jnienv(new QAndroidJniEnvironment())
+#endif
 {
 	if (!isatty(STDIN_FILENO))
 		notifier.setEnabled(false);
 
 	ui->setupUi(this);
+
+#ifdef __ANDROID__
+	libusb_set_option(NULL,LIBUSB_OPTION_ANDROID_JAVAVM,jnienv->javaVM());
+	libusb_set_option(NULL,LIBUSB_OPTION_WEAK_AUTHORITY,NULL);
+#endif
 
 	setWindowIcon(QIcon(":/icon.ico"));
 	QApplication::setWindowIcon(QIcon(":/icon.ico"));
@@ -292,7 +307,21 @@ ToolLauncher::ToolLauncher(QString prevCrashDump, QWidget *parent) :
 	} else {
 
 	}
+#if __ANDROID__
+	auto  result = QtAndroid::checkPermission(QString("android.permission.WRITE_EXTERNAL_STORAGE"));
+	    if(result == QtAndroid::PermissionResult::Denied){
+		QtAndroid::PermissionResultMap resultHash = QtAndroid::requestPermissionsSync(QStringList({"android.permission.WRITE_EXTERNAL_STORAGE"}));
+		if(resultHash["android.permission.WRITE_EXTERNAL_STORAGE"] == QtAndroid::PermissionResult::Denied)
+		    return;
+	    }
+	result = QtAndroid::checkPermission(QString("android.permission.READ_EXTERNAL_STORAGE"));
+		if(result == QtAndroid::PermissionResult::Denied){
+		    QtAndroid::PermissionResultMap resultHash = QtAndroid::requestPermissionsSync(QStringList({"android.permission.READ_EXTERNAL_STORAGE"}));
+		    if(resultHash["android.permission.READ_EXTERNAL_STORAGE"] == QtAndroid::PermissionResult::Denied)
+			return;
+		}
 
+#endif
 	// TO DO: Remove temporary spaces
 	// set home icon
 	ui->btnHome->setText("  Home");
