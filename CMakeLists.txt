@@ -83,6 +83,7 @@ endif (MSVC)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5 COMPONENTS LinguistTools REQUIRED)
 find_package(Qt5Concurrent REQUIRED)
+find_package(Qt5AndroidExtras REQUIRED)
 
 FILE(GLOB TS_FILES ${CMAKE_SOURCE_DIR}/resources/translations/*.ts)
 set_source_files_properties(${TS_FILES} PROPERTIES OUTPUT_LOCATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -146,7 +147,7 @@ else()
 
 endif()
 
-find_package(Qwt REQUIRED)
+#find_package(Qt5Qwt6 REQUIRED)
 find_package(Qt5Qml REQUIRED)
 find_package(Qt5Svg REQUIRED)
 find_package(Qt5UiTools REQUIRED)
@@ -155,7 +156,7 @@ find_package(Qt5Xml REQUIRED)
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 find_package(Gnuradio "3.8" REQUIRED COMPONENTS runtime analog blocks fft filter volk pmt )
 
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};/usr/local/lib/cmake)
+#set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};/usr/local/lib/cmake)
 find_package(gnuradio-iio REQUIRED PATH_SUFFIXES iio)
 find_package(gnuradio-scopy REQUIRED PATH_SUFFIXES scopy)
 find_package(gnuradio-m2k REQUIRED PATH_SUFFIXES m2k)
@@ -171,27 +172,31 @@ if (ENABLE_MATIO)
 	add_definitions(-DMATLAB_SUPPORT_SIGGEN)
 endif()
 
-find_library(QWTPOLAR_LIBRARIES qwtpolar)
-find_path(QWTPOLAR_INCLUDE_DIRS qwt_polar_plot.h PATH_SUFFIXES qwt)
-if (NOT QWTPOLAR_LIBRARIES OR NOT QWTPOLAR_INCLUDE_DIRS)
-	message(SEND_ERROR "QwtPolar not found")
-endif()
+set(CMAKE_FIND_DEBUG_MODE ON)
+find_library(QWT_LIBRARIES REQUIRED NAMES qwt_${ANDROID_ABI})
+message(1234 ${QWT_LIBRARIES})
+set(CMAKE_FIND_DEBUG_MODE OFF)
 
 find_package(PkgConfig)
+set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH ON)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(GLIBMM REQUIRED glibmm-2.4)
 pkg_check_modules(SIGCPP REQUIRED sigc++-2.0)
 pkg_check_modules(LIBSIGROK_DECODE REQUIRED libsigrokdecode)
+
+#message(SEARCH ${CMAKE_PREFIX_PATH})
+#pkg_check_modules(Qt5Qwt6 REQUIRED Qt5Qwt6)
+
 pkg_get_variable(LIBSIGROK_DECODERS_DIR libsigrokdecode decodersdir)
-message(CMAKE_PATH ${CMAKE_PREFIX_PATH})
+
 include_directories(
 	${Boost_INCLUDE_DIRS}
 	${Qt5Widgets_INCLUDE_DIRS}
 	${Qt5Concurrent_INCLUDE_DIRS}
+	${Qt5AndroidExtras_INCLUDE_DIRS}
 	${Qt5Qml_INCLUDE_DIRS}
 	${Qt5UiTools_INCLUDE_DIRS}
 	${QWT_INCLUDE_DIRS}
-	${QWTPOLAR_INCLUDE_DIRS}
 	${Qt5Svg_INCLUDE_DIRS}
 	${Qt5Xml_INCLUDE_DIRS}
 	${SCOPY_INCLUDE_DIRS}
@@ -300,7 +305,7 @@ if($ENV{APPVEYOR})
 	set(APPVEYOR_INFO ${APPVEYOR_INFO}job_id:\ $ENV{APPVEYOR_JOB_ID}\n)
 	set(APPVEYOR_INFO ${APPVEYOR_INFO}job_name:\ $ENV{APPVEYOR_JOB_NAME}\n)
 	set(APPVEYOR_INFO ${APPVEYOR_INFO}job_nr:\ $ENV{APPVEYOR_JOB_NUMBER}\n)
-	set(APPVEYOR_INFO ${APPVEYOR_INFO}job_link:\ $ENV{APPVEYOR_URL}/project/$ENV{APPVEYOR_ACCOUNT_NAME}/$ENV{APPVEYOR_PROJECT_NAME}/builds/$ENV{APPVEYOR_BUILD_ID}/job/$ENV{APPVEYOR_JOB_ID}\n)		
+	set(APPVEYOR_INFO ${APPVEYOR_INFO}job_link:\ $ENV{APPVEYOR_URL}/project/$ENV{APPVEYOR_ACCOUNT_NAME}/$ENV{APPVEYOR_PROJECT_NAME}/builds/$ENV{APPVEYOR_BUILD_ID}/job/$ENV{APPVEYOR_JOB_ID}\n)
 	if(EXISTS ${CMAKE_SOURCE_DIR}/scopy-mingw-build-status)
 		message(scopy-mingw-build-status found .. populating)
 		FILE(READ ${CMAKE_SOURCE_DIR}/scopy-mingw-build-status SCOPY_MINGW_BUILD_STATUS_INFO)
@@ -329,7 +334,8 @@ configure_file(${CMAKE_SOURCE_DIR}/resources/aboutpage.qrc
 
 qt5_add_resources(ABOUT_PAGE_RESOURCES ${CMAKE_CURRENT_BINARY_DIR}/aboutpage.qrc)
 
-add_executable(${PROJECT_NAME} WIN32 ${OSX_BUNDLE}
+if(ANDROID)
+	add_library(${PROJECT_NAME} SHARED
 		${SRC_LIST}
 		${RESOURCES}
 		${m2kscope_RESOURCES}
@@ -337,7 +343,19 @@ add_executable(${PROJECT_NAME} WIN32 ${OSX_BUNDLE}
 		${EXTRA_BUNDLE_FILES}
 		${TRANSLATION_RESOURCES}
 		${ABOUT_PAGE_RESOURCES}
-)
+		)
+    else()
+	add_executable(${PROJECT_NAME} WIN32 ${OSX_BUNDLE}
+		${SRC_LIST}
+		${RESOURCES}
+		${m2kscope_RESOURCES}
+		${m2kscope_FORMS_HEADERS}
+		${EXTRA_BUNDLE_FILES}
+		${TRANSLATION_RESOURCES}
+		${ABOUT_PAGE_RESOURCES}
+        )
+endif()
+
 
 if (WIN32 OR ENABLE_APPLICATION_BUNDLE)
 	set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME Scopy)
@@ -349,6 +367,7 @@ target_link_libraries(${PROJECT_NAME} LINK_PRIVATE
 		${Qt5Concurrent_LIBRARIES}
 		${Qt5Qml_LIBRARIES}
 		${Qt5UiTools_LIBRARIES}
+		${Qt5AndroidExtras_LIBRARIES}
 		gnuradio::gnuradio-runtime
 		gnuradio::gnuradio-analog
 		gnuradio::gnuradio-blocks
@@ -360,7 +379,6 @@ target_link_libraries(${PROJECT_NAME} LINK_PRIVATE
 		gnuradio::gnuradio-m2k
 		${Boost_LIBRARIES}
 		${QWT_LIBRARIES}
-		${QWTPOLAR_LIBRARIES}
 		${Qt5Svg_LIBRARIES}
 		${Qt5Xml_LIBRARIES}
 		${MATIO_LIBRARIES}

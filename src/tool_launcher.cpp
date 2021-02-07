@@ -55,6 +55,7 @@
 #include <QJsonDocument>
 #include <QDesktopServices>
 #include <QSpacerItem>
+#include <QtAndroidExtras/QtAndroid>
 
 #include <iio.h>
 
@@ -283,6 +284,12 @@ ToolLauncher::ToolLauncher(QString prevCrashDump, QWidget *parent) :
 	} else {
 
 	}
+	auto  result = QtAndroid::checkPermission(QString("android.permission.WRITE_EXTERNAL_STORAGE"));
+	    if(result == QtAndroid::PermissionResult::Denied){
+		QtAndroid::PermissionResultMap resultHash = QtAndroid::requestPermissionsSync(QStringList({"android.permission.WRITE_EXTERNAL_STORAGE"}));
+		if(resultHash["android.permission.WRITE_EXTERNAL_STORAGE"] == QtAndroid::PermissionResult::Denied)
+		    return;
+	    }
 
 }
 
@@ -1494,32 +1501,32 @@ void adiscope::ToolLauncher::enableAdcBasedTools()
 					 &ToolLauncher::addDebugWindow);
 		}
 
-		if (filter->compatible(TOOL_CALIBRATION)) {
-			manual_calibration = new ManualCalibration(ctx, filter,menu->getToolMenuItemFor(TOOL_CALIBRATION),
-								   &js_engine, this, calib);
-			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_CALIBRATION)->getToolStopBtn());
-			toolList.push_back(manual_calibration);
-		}
+//		if (filter->compatible(TOOL_CALIBRATION)) {
+//			manual_calibration = new ManualCalibration(ctx, filter,menu->getToolMenuItemFor(TOOL_CALIBRATION),
+//								   &js_engine, this, calib);
+//			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_CALIBRATION)->getToolStopBtn());
+//			toolList.push_back(manual_calibration);
+//		}
 
-		if (filter->compatible(TOOL_SPECTRUM_ANALYZER)) {
-			spectrum_analyzer = new SpectrumAnalyzer(ctx, filter, menu->getToolMenuItemFor(TOOL_SPECTRUM_ANALYZER),&js_engine, this);
-			toolList.push_back(spectrum_analyzer);
-			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_SPECTRUM_ANALYZER)->getToolStopBtn());
-			connect(spectrum_analyzer, &SpectrumAnalyzer::showTool, [=]() {
-				menu->getToolMenuItemFor(TOOL_SPECTRUM_ANALYZER)->getToolBtn()->click();
-			});
-		}
+//		if (filter->compatible(TOOL_SPECTRUM_ANALYZER)) {
+//			spectrum_analyzer = new SpectrumAnalyzer(ctx, filter, menu->getToolMenuItemFor(TOOL_SPECTRUM_ANALYZER),&js_engine, this);
+//			toolList.push_back(spectrum_analyzer);
+//			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_SPECTRUM_ANALYZER)->getToolStopBtn());
+//			connect(spectrum_analyzer, &SpectrumAnalyzer::showTool, [=]() {
+//				menu->getToolMenuItemFor(TOOL_SPECTRUM_ANALYZER)->getToolBtn()->click();
+//			});
+//		}
 
-		if (filter->compatible((TOOL_NETWORK_ANALYZER))) {
+//		if (filter->compatible((TOOL_NETWORK_ANALYZER))) {
 
-			network_analyzer = new NetworkAnalyzer(ctx, filter, menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER), &js_engine, this);
-			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER)->getToolStopBtn());
-			toolList.push_back(network_analyzer);
-			connect(network_analyzer, &NetworkAnalyzer::showTool, [=]() {
-				menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER)->getToolBtn()->click();
-			});
-			network_analyzer->setOscilloscope(oscilloscope);
-		}
+//			network_analyzer = new NetworkAnalyzer(ctx, filter, menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER), &js_engine, this);
+//			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER)->getToolStopBtn());
+//			toolList.push_back(network_analyzer);
+//			connect(network_analyzer, &NetworkAnalyzer::showTool, [=]() {
+//				menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER)->getToolBtn()->click();
+//			});
+//			network_analyzer->setOscilloscope(oscilloscope);
+//		}
 
 		m_adc_tools_failed = false;
 		Q_EMIT adcToolsCreated();
@@ -1591,71 +1598,71 @@ bool adiscope::ToolLauncher::switchContext(const QString& uri)
 	calib->initialize();
 
 	try {
-		if (filter->compatible(TOOL_PATTERN_GENERATOR)
-				|| filter->compatible(TOOL_DIGITALIO)) {
-			dioManager = new DIOManager(ctx, filter);
-		}
+//		if (filter->compatible(TOOL_PATTERN_GENERATOR)
+//				|| filter->compatible(TOOL_DIGITALIO)) {
+//			dioManager = new DIOManager(ctx, filter);
+//		}
 
-		if (filter->compatible(TOOL_LOGIC_ANALYZER)
-				|| filter->compatible(TOOL_PATTERN_GENERATOR)) {
+//		if (filter->compatible(TOOL_LOGIC_ANALYZER)
+//				|| filter->compatible(TOOL_PATTERN_GENERATOR)) {
 
-			if (!m_use_decoders) {
-				search_timer->stop();
+//			if (!m_use_decoders) {
+//				search_timer->stop();
 
-				QMessageBox info(this);
-				info.setText(tr("Digital decoders support is disabled. Some features may be missing"));
-				info.exec();
-			} else {
-				bool success = loadDecoders(QCoreApplication::applicationDirPath() +
-							    "/decoders");
+//				QMessageBox info(this);
+//				info.setText(tr("Digital decoders support is disabled. Some features may be missing"));
+//				info.exec();
+//			} else {
+//				bool success = loadDecoders(QCoreApplication::applicationDirPath() +
+//							    "/decoders");
 
-				if (!success) {
-					search_timer->stop();
+//				if (!success) {
+//					search_timer->stop();
 
-					QMessageBox error(this);
-					error.setText(tr("There was a problem initializing libsigrokdecode. Some features may be missing"));
-					error.exec();
-				}
-			}
-		}
+//					QMessageBox error(this);
+//					error.setText(tr("There was a problem initializing libsigrokdecode. Some features may be missing"));
+//					error.exec();
+//				}
+//			}
+//		}
 
-		if (filter->compatible(TOOL_DIGITALIO)) {
-			dio = new DigitalIO(nullptr, filter, menu->getToolMenuItemFor(TOOL_DIGITALIO),
-					    dioManager, &js_engine, this);
-			toolList.push_back(dio);
-			connect(dio, &DigitalIO::showTool, [=]() {
-				menu->getToolMenuItemFor(TOOL_DIGITALIO)->getToolBtn()->click();
-			});
-		}
-
-
-		if (filter->compatible(TOOL_POWER_CONTROLLER)) {
-			power_control = new PowerController(ctx, menu->getToolMenuItemFor(TOOL_POWER_CONTROLLER),
-							    &js_engine, this);
-			toolList.push_back(power_control);
-			connect(power_control, &PowerController::showTool, [=]() {
-				menu->getToolMenuItemFor(TOOL_POWER_CONTROLLER)->getToolBtn()->click();
-			});
-		}
-
-		if (filter->compatible(TOOL_LOGIC_ANALYZER)) {
-			logic_analyzer = new logic::LogicAnalyzer(ctx, filter, menu->getToolMenuItemFor(TOOL_LOGIC_ANALYZER),
-								  &js_engine, this);
-			toolList.push_back(logic_analyzer);
-			connect(logic_analyzer, &logic::LogicAnalyzer::showTool, [=]() {
-				menu->getToolMenuItemFor(TOOL_LOGIC_ANALYZER)->getToolBtn()->click();
-			});
-		}
+//		if (filter->compatible(TOOL_DIGITALIO)) {
+//			dio = new DigitalIO(nullptr, filter, menu->getToolMenuItemFor(TOOL_DIGITALIO),
+//					    dioManager, &js_engine, this);
+//			toolList.push_back(dio);
+//			connect(dio, &DigitalIO::showTool, [=]() {
+//				menu->getToolMenuItemFor(TOOL_DIGITALIO)->getToolBtn()->click();
+//			});
+//		}
 
 
-		if (filter->compatible((TOOL_PATTERN_GENERATOR))) {
-			pattern_generator = new logic::PatternGenerator(ctx, filter,
-									menu->getToolMenuItemFor(TOOL_PATTERN_GENERATOR), &js_engine, dioManager, this);
-			toolList.push_back(pattern_generator);
-			connect(pattern_generator, &logic::PatternGenerator::showTool, [=]() {
-				menu->getToolMenuItemFor(TOOL_PATTERN_GENERATOR)->getToolBtn()->click();
-			});
-		}
+//		if (filter->compatible(TOOL_POWER_CONTROLLER)) {
+//			power_control = new PowerController(ctx, menu->getToolMenuItemFor(TOOL_POWER_CONTROLLER),
+//							    &js_engine, this);
+//			toolList.push_back(power_control);
+//			connect(power_control, &PowerController::showTool, [=]() {
+//				menu->getToolMenuItemFor(TOOL_POWER_CONTROLLER)->getToolBtn()->click();
+//			});
+//		}
+
+//		if (filter->compatible(TOOL_LOGIC_ANALYZER)) {
+//			logic_analyzer = new logic::LogicAnalyzer(ctx, filter, menu->getToolMenuItemFor(TOOL_LOGIC_ANALYZER),
+//								  &js_engine, this);
+//			toolList.push_back(logic_analyzer);
+//			connect(logic_analyzer, &logic::LogicAnalyzer::showTool, [=]() {
+//				menu->getToolMenuItemFor(TOOL_LOGIC_ANALYZER)->getToolBtn()->click();
+//			});
+//		}
+
+
+//		if (filter->compatible((TOOL_PATTERN_GENERATOR))) {
+//			pattern_generator = new logic::PatternGenerator(ctx, filter,
+//									menu->getToolMenuItemFor(TOOL_PATTERN_GENERATOR), &js_engine, dioManager, this);
+//			toolList.push_back(pattern_generator);
+//			connect(pattern_generator, &logic::PatternGenerator::showTool, [=]() {
+//				menu->getToolMenuItemFor(TOOL_PATTERN_GENERATOR)->getToolBtn()->click();
+//			});
+//		}
 	}
 	catch (libm2k::m2k_exception &e) {
 		return false;
