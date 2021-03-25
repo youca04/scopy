@@ -12,16 +12,20 @@ function(enable_doxygen targets)
             get_target_property(
                 include_headers ${target} INTERFACE_INCLUDE_DIRECTORIES
             )
+
+            message(${include_headers})
+
             string(REPLACE "$<INSTALL_INTERFACE:include>" "" include_headers
                            ${include_headers}
             )
             string(REPLACE "$<BUILD_INTERFACE:" "" include_headers
                            ${include_headers}
             )
-            string(REPLACE ">" "" include_headers ${include_headers})
+            string(REGEX REPLACE ">.*" "" include_headers ${include_headers})
             set(HEADERS "${HEADERS}\;${include_headers}")
         endforeach()
 
+        message(${HEADERS})
         doxygen_add_docs(doxygen ${HEADERS} COMMENT "Generating doxygen doc")
     endif()
 endfunction()

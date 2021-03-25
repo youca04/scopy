@@ -1,16 +1,16 @@
 #include "ui_scopy_about_dialog.h"
 
-#include <iio.h>
+// #include <iio.h>
 
-#include <gnuradio/constants.h>
+// #include <gnuradio/constants.h>
 
 #include <QDateTime>
 #include <QDebug>
 #include <QFile>
 
-#include <libm2k/contextbuilder.hpp>
+// #include <libm2k/contextbuilder.hpp>
 #include <scopy/gui/scopy_about_dialog.hpp>
-#include <utils.hpp>
+// #include <utils.hpp>
 
 using namespace scopy::gui;
 

@@ -37,4 +37,4 @@ add_subdirectory(plugins)
 add_subdirectory(app)
 
 include(cmake/doxygen.cmake)
-enable_doxygen("scopy::gui;")
+enable_doxygen("scopy::gui;scopy::core")
