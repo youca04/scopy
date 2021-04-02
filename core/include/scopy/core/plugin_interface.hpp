@@ -1,7 +1,7 @@
 #ifndef PLUGININTERFACE_HPP
 #define PLUGININTERFACE_HPP
 
-#include "toolinterface.hpp"
+#include "tool_interface.hpp"
 
 #include <QtPlugin>
 
@@ -38,9 +38,10 @@ public:
 	 * @param The iio_context ?
 	 * @return std::vector<ToolInterface *>
 	 *
+	 * @note: the tool menu is used to get the corresponding tool menu item
 	 * @note Will return an empty list in case the iio_context is not compatible with the plugin
 	 */
-	virtual std::vector<ToolInterface*> getTools(/*iio_context*/) = 0;
+	virtual std::vector<ToolInterface*> getTools(/*iio_context, tool menu*/) = 0;
 
 	/**
 	 * @brief Returns if the iio_context is compatible with the plugin
@@ -69,9 +70,11 @@ public:
 
 public:
 };
+
 } // namespace core
 } // namespace scopy
-#define PluginInterface_iid "org.qt-project.Scopy2.Core.PluginInterface/1.0"
-Q_DECLARE_INTERFACE(PluginInterface, PluginInterface_iid)
+
+#define PluginInterface_iid "org.qt-project.Scopy.Core.PluginInterface/1.0"
+Q_DECLARE_INTERFACE(scopy::core::PluginInterface, PluginInterface_iid)
 
 #endif // PLUGININTERFACE_HPP

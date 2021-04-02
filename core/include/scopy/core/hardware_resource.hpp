@@ -45,6 +45,10 @@ struct HardwareResource
 	 */
 	ConnectionType m_connectionType;
 };
+
+bool operator==(const HardwareResource& lhs, const HardwareResource& rhs);
+bool operator!=(const HardwareResource& lhs, const HardwareResource& rhs);
+
 } // namespace core
 } // namespace scopy
 

@@ -20,6 +20,10 @@ add_library(
     src/application_restarter.cpp
     src/context_enumerator.cpp
     src/scopy_application.cpp
+    src/hardware_resource.cpp
+    src/data_source.cpp
+    src/data_sink.cpp
+    src/plugin_manager.cpp
 )
 
 # MOC hack in order to have the header files in include/scopy/gui

@@ -30,11 +30,11 @@ enable_testing()
 # scopy gui library
 add_subdirectory(gui)
 
-# scopy plugins
-add_subdirectory(plugins)
-
 # scopy application
 add_subdirectory(app)
+
+# scopy plugins
+add_subdirectory(plugins)
 
 include(cmake/doxygen.cmake)
 enable_doxygen("scopy::gui;scopy::core")

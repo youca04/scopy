@@ -84,6 +84,10 @@ MainWindow::MainWindow(QWidget* parent)
 	//	ui->vLayout->addWidget(new scopy::gui::StartStopRangeWidget);
 
 	//	ui->vLayout->addWidget(new scopy::gui::ScopyAboutDialog);
+
+	ui->widget->setVisible(false); // hide current tested gui
+
+
 }
 
 MainWindow::~MainWindow() { delete ui; }
