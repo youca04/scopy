@@ -6,6 +6,13 @@
 #include <QtPlugin>
 
 #include <vector>
+#include <iio.h>
+
+namespace scopy {
+namespace gui {
+class ToolMenu;
+}
+}
 
 class QWidget;
 
@@ -41,7 +48,7 @@ public:
 	 * @note: the tool menu is used to get the corresponding tool menu item
 	 * @note Will return an empty list in case the iio_context is not compatible with the plugin
 	 */
-	virtual std::vector<ToolInterface*> getTools(/*iio_context, tool menu*/) = 0;
+	virtual std::vector<ToolInterface*> getTools(struct iio_context *ctx/*, scopy::gui::ToolMenu *menu*/) = 0;
 
 	/**
 	 * @brief Returns if the iio_context is compatible with the plugin
