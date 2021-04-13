@@ -31,35 +31,35 @@ Tool::Tool(struct iio_context *ctx, ToolMenuItem *toolMenuItem,
 		ApiObject *api, const QString& name,
 		ToolLauncher *parent) :
 	QWidget(static_cast<QWidget *>(parent)),
-	ctx(ctx), run_button(toolMenuItem->getToolStopBtn()), api(api),
+	ctx(ctx), run_button(nullptr/*toolMenuItem->getToolStopBtn()*/), api(api),
 	name(name), saveOnExit(true), isDetached(false), m_running(false),
 	window(nullptr), toolMenuItem(toolMenuItem)
 {
-	toolMenuItem->setDisabled(false);
+//	toolMenuItem->setDisabled(false);
 
-	connect(this, &Tool::detachedState,
-		parent, &ToolLauncher::toolDetached);
-	connect(parent, &ToolLauncher::launcherClosed,
-		this, &Tool::saveState);
+//	connect(this, &Tool::detachedState,
+//		parent, &ToolLauncher::toolDetached);
+//	connect(parent, &ToolLauncher::launcherClosed,
+//		this, &Tool::saveState);
 
 	QSettings oldSettings;
 	QFile tempFile(oldSettings.fileName() + ".bak");
 	settings = new QSettings(tempFile.fileName(), QSettings::IniFormat);
 
-	prefPanel = parent->getPrefPanel();
-	connect(prefPanel, &Preferences::notify, this, &Tool::readPreferences);
+//	prefPanel = parent->getPrefPanel();
+//	connect(prefPanel, &Preferences::notify, this, &Tool::readPreferences);
 
-	readPreferences();
+//	readPreferences();
 
 	if (api) {
 		connect(api, &ApiObject::loadingFinished,
 			this, &Tool::loadState);
 	}
 
-	connect(toolMenuItem, &ToolMenuItem::detach,
-		this, &Tool::detached);
-	connect(this, &Tool::detachedState,
-		toolMenuItem, &ToolMenuItem::setDetached);
+//	connect(toolMenuItem, &ToolMenuItem::detach,
+//		this, &Tool::detached);
+//	connect(this, &Tool::detachedState,
+//		toolMenuItem, &ToolMenuItem::setDetached);
 }
 
 Tool::~Tool()
@@ -67,7 +67,7 @@ Tool::~Tool()
 	disconnect(prefPanel, &Preferences::notify, this, &Tool::readPreferences);
 
 	run_button->setChecked(false);
-	toolMenuItem->setDisabled(true);
+//	toolMenuItem->setDisabled(true);
 
 	delete settings;
 
@@ -147,7 +147,7 @@ void Tool::detached()
 {
 	if (isDetached) {
 		// If it is already detached force it in the foreground
-		static_cast<DetachedWindow*>(parent())->showWindow();
+//		static_cast<DetachedWindow*>(parent())->showWindow();
 	} else {
 		Q_EMIT detachedState(true);
 		isDetached = true;

@@ -115,7 +115,7 @@ SpinBoxA::SpinBoxA(vector<pair<QString, double> >units, const QString& name,
 	QFile tempFile(oldSettings.fileName() + ".bak");
 	m_settings = SingleToneWrapper<QSettings *>::getInstance().getWrapped();
 
-	m_sba_api->load(*m_settings);
+//	m_sba_api->load(*m_settings);
 	m_is_step_down = false;
 }
 
@@ -123,7 +123,7 @@ SpinBoxA::~SpinBoxA()
 {
 	current_id--;
 
-	m_sba_api->save(*m_settings);
+//	m_sba_api->save(*m_settings);
 
 	delete m_sba_api;
 	delete ui;

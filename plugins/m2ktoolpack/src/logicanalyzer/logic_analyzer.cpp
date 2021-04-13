@@ -240,10 +240,12 @@ LogicAnalyzer::LogicAnalyzer(struct iio_context *ctx, adiscope::Filter *filt,
 
 	ui->btnGeneralSettings->setChecked(true);
 
-	api->setObjectName(QString::fromStdString(Filter::tool_name(
-							  TOOL_LOGIC_ANALYZER)));
-	api->load(*settings);
-	api->js_register(engine);
+//	api->setObjectName(QString::fromStdString(Filter::tool_name(
+//							  TOOL_LOGIC_ANALYZER)));
+//	api->setObjectName("LogicAnalyzer");
+
+//	api->load(*settings);
+//	api->js_register(engine);
 
 	// Scroll wheel event filter
 	m_wheelEventGuard = new MouseWheelWidgetGuard(ui->mainWidget);
@@ -252,9 +254,9 @@ LogicAnalyzer::LogicAnalyzer(struct iio_context *ctx, adiscope::Filter *filt,
 
 LogicAnalyzer::~LogicAnalyzer()
 {
-	if (saveOnExit) {
-		api->save(*settings);
-	}
+//	if (saveOnExit) {
+//		api->save(*settings);
+//	}
 
 	delete api;
 
@@ -315,7 +317,7 @@ std::vector<QWidget *> LogicAnalyzer::enableMixedSignalView(CapturePlot *osc, in
 	m_saveRestoreSettings = std::unique_ptr<SaveRestoreToolSettings>(new SaveRestoreToolSettings(this));
 
 	// disable the menu item for the logic analyzer when mixed signal view is enabled
-	toolMenuItem->setDisabled(true);
+//	toolMenuItem->setDisabled(true);
 
 	m_oscPlot = osc;
 
@@ -892,7 +894,7 @@ std::vector<QWidget *> LogicAnalyzer::enableMixedSignalView(CapturePlot *osc, in
 void LogicAnalyzer::disableMixedSignalView()
 {
 	// restore the menu item availability
-	toolMenuItem->setEnabled(true);
+//	toolMenuItem->setEnabled(true);
 
 	// restore the state of the tool
 	m_saveRestoreSettings.reset(nullptr);
@@ -1386,14 +1388,14 @@ void LogicAnalyzer::connectSignalsAndSlots()
 
 	connect(ui->runSingleWidget, &RunSingleWidget::toggled,
 		[=](bool checked){
-		auto btn = dynamic_cast<CustomPushButton *>(run_button);
-		btn->setChecked(checked);
+//		auto btn = dynamic_cast<CustomPushButton *>(run_button);
+//		btn->setChecked(checked);
 //		if (!checked) {
 //			m_plot.setTriggerState(CapturePlot::Stop);
 //		}
 	});
-	connect(run_button, &QPushButton::toggled,
-		ui->runSingleWidget, &RunSingleWidget::toggle);
+//	connect(run_button, &QPushButton::toggled,
+//		ui->runSingleWidget, &RunSingleWidget::toggle);
 	connect(ui->runSingleWidget, &RunSingleWidget::toggled,
 		this, &LogicAnalyzer::startStop);
 
@@ -2398,20 +2400,21 @@ void LogicAnalyzer::restoreTriggerState()
 
 void LogicAnalyzer::readPreferences()
 {
-	qDebug() << "reading preferences!!!!";
-	for (GenericLogicPlotCurve *curve : m_plotCurves) {
-		if (curve->getType() == LogicPlotCurveType::Data) {
-			LogicDataCurve *ldc = dynamic_cast<LogicDataCurve*>(curve);
-			if (!ldc) {
-				continue;
-			}
+//	qDebug() << "reading preferences!!!!";
+//	for (GenericLogicPlotCurve *curve : m_plotCurves) {
+//		if (curve->getType() == LogicPlotCurveType::Data) {
+//			LogicDataCurve *ldc = dynamic_cast<LogicDataCurve*>(curve);
+//			if (!ldc) {
+//				continue;
+//			}
 
-			ldc->setDisplaySampling(prefPanel->getDisplaySamplingPoints());
-		}
-	}
-	ui->instrumentNotes->setVisible(prefPanel->getInstrumentNotesActive());
+//			ldc->setDisplaySampling(prefPanel->getDisplaySamplingPoints());
+//		}
+//	}
+//	ui->instrumentNotes->setVisible(prefPanel->getInstrumentNotesActive());
+	ui->instrumentNotes->setVisible(false);
 
-	m_plot.replot();
+//	m_plot.replot();
 }
 
 void LogicAnalyzer::exportData()

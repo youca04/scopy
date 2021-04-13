@@ -28,11 +28,11 @@ using namespace adiscope;
 DetachDragZone::DetachDragZone(QWidget *parent) :
 	ColoredQWidget(parent)
 {
-	ToolLauncher *tl = static_cast<ToolLauncher*>(parent->parent());
-	if (tl->infoWidget != nullptr){
-		connect(this, SIGNAL(changeText(QString)), tl->infoWidget,
-			SLOT(setText(QString)));
-	}
+//	ToolLauncher *tl = static_cast<ToolLauncher*>(parent->parent());
+//	if (tl->infoWidget != nullptr){
+//		connect(this, SIGNAL(changeText(QString)), tl->infoWidget,
+//			SLOT(setText(QString)));
+//	}
 
 	setAcceptDrops(true);
 	this->installEventFilter(this);
