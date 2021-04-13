@@ -67,3 +67,4 @@ function(add_scopy_plugin target_name)
 endfunction()
 
 add_subdirectory(demo)
+add_subdirectory(m2ktoolpack)
