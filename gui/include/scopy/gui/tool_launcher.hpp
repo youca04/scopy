@@ -9,6 +9,9 @@
 #include <scopy/gui/tool_menu.hpp>
 #include <scopy/gui/user_notes.hpp>
 
+#include <scopy/core/plugin_interface.hpp>
+#include <scopy/core/tool_interface.hpp>
+
 namespace Ui {
 class ToolLauncher;
 }
@@ -27,6 +30,12 @@ private:
 
 	void setTestLbl(const QString& text);
 
+	void setupUi();
+
+private Q_SLOTS:
+	void onBtnHomeClicked();
+	void detectedUris(const QStringList& uris);
+
 private:
 	Ui::ToolLauncher* m_ui;
 
@@ -39,11 +48,9 @@ private:
 	Preferences* m_prefPanel;
 	UserNotes* m_notesPanel;
 
-	scopy::core::ContextEnumerator* m_boardDetector;
-
-private Q_SLOTS:
-	void onBtnHomeClicked();
-	void printUris(const QStringList& uris);
+	scopy::core::ContextEnumerator* m_contextEnumerator;
+	std::vector<scopy::core::PluginInterface*> m_plugins;
+	std::vector<scopy::core::ToolInterface*> m_tools;
 };
 } // namespace gui
 } // namespace scopy

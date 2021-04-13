@@ -4,8 +4,12 @@
 #include "ui_tool_launcher.h"
 
 #include <scopy/gui/tool_launcher.hpp>
+#include <scopy/gui/filter.hpp>
+#include <iio.h>
+#include <scopy/core/plugin_manager.hpp>
 
 using namespace scopy::gui;
+using namespace scopy::core;
 
 ToolLauncher::ToolLauncher(QWidget* parent)
 	: QMainWindow(parent)
@@ -16,6 +20,35 @@ ToolLauncher::ToolLauncher(QWidget* parent)
 {
 	m_ui->setupUi(this);
 
+	setupUi();
+
+	// Visualize all connected uris
+	m_contextEnumerator = new scopy::core::ContextEnumerator();
+	connect(m_contextEnumerator, &scopy::core::ContextEnumerator::printData, this,
+		&scopy::gui::ToolLauncher::detectedUris);
+
+	m_plugins = scopy::core::PluginManager::getInstance().getPlugins();
+}
+
+void ToolLauncher::swapMenu(QWidget* menu)
+{
+	Tool* tl = dynamic_cast<Tool*>(menu);
+
+	if (m_current) {
+		m_current->setVisible(false);
+		m_ui->hLayoutCentral->removeWidget(m_current);
+	}
+
+	m_current = menu;
+
+	m_ui->hLayoutCentral->addWidget(m_current);
+	m_current->setVisible(true);
+}
+
+void ToolLauncher::setTestLbl(const QString& text) { m_ui->lblTestDevFound->setText(text); }
+
+void ToolLauncher::setupUi()
+{
 	m_prefPanel = new Preferences(this);
 	m_prefPanel->setVisible(false);
 
@@ -58,34 +91,39 @@ ToolLauncher::ToolLauncher(QWidget* parent)
 
 	m_current = m_ui->widgetHome;
 
-	// Visualize all connected uris
-	m_boardDetector = new scopy::core::ContextEnumerator();
-	connect(m_boardDetector, &scopy::core::ContextEnumerator::printData, this,
-		&scopy::gui::ToolLauncher::printUris);
+
+	// setup tool menu
+	//
+
+	m_toolMenu = new ToolMenu(nullptr, m_ui->menuContainer);
+	m_ui->menuContainerLayout->addWidget(m_toolMenu);
 }
 
-void ToolLauncher::swapMenu(QWidget* menu)
-{
-	Tool* tl = dynamic_cast<Tool*>(menu);
-
-	if (m_current) {
-		m_current->setVisible(false);
-		m_ui->hLayoutCentral->removeWidget(m_current);
-	}
-
-	m_current = menu;
-
-	m_ui->hLayoutCentral->addWidget(m_current);
-	m_current->setVisible(true);
-}
-
-void ToolLauncher::setTestLbl(const QString& text) { m_ui->lblTestDevFound->setText(text); }
-
-void ToolLauncher::printUris(const QStringList& uris)
+void ToolLauncher::detectedUris(const QStringList& uris)
 {
 	QString text = std::accumulate(uris.cbegin(), uris.cend(), QString{});
 	this->setTestLbl(text);
-	m_boardDetector->start();
+	m_contextEnumerator->stop();
+	// device clicked!
+	auto tempCtx = iio_create_context_from_uri(uris[0].toStdString().c_str());
+	if (tempCtx) {
+		auto tempFilter = new Filter(tempCtx);
+		m_toolMenu->loadToolsFromFilter(tempFilter);
+		delete tempFilter;
+//		iio_context_destroy(tempCtx);
+	}
+
+	// when connect is clicked
+	// lets go through the plugins and see what we have compatible with this ctx
+	for (PluginInterface *plugin : m_plugins) {
+		std::vector<ToolInterface*> tools = plugin->getTools(tempCtx);
+		for (ToolInterface *tl : tools) {
+//			tl->getWidget()->show();
+			swapMenu(tl->getWidget());
+		}
+	}
+
+
 }
 
 void ToolLauncher::onBtnHomeClicked() { swapMenu(m_ui->widgetHome); }
