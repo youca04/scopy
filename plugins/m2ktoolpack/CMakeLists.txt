@@ -447,3 +447,88 @@ endif()
 
 configure_file(qt.conf.cmakein ${CMAKE_CURRENT_BINARY_DIR}/qt.conf @ONLY)
 
+
+#COMPILE M2KTOOLPACK
+
+# remove main.cpp as we don't need it in a library
+foreach(element ${SRC_LIST})
+    string(REGEX MATCH ".*main.cpp" result ${element})
+    if(result)
+        message("Removing ${element}")
+        list(REMOVE_ITEM SRC_LIST ${element})
+    endif()
+endforeach()
+
+add_library(m2ktoolpack SHARED
+	${SRC_LIST}
+	${RESOURCES}
+	${m2kscope_RESOURCES}
+	${m2kscope_FORMS_HEADERS}
+	${EXTRA_BUNDLE_FILES}
+	${TRANSLATION_RESOURCES}
+	${ABOUT_PAGE_RESOURCES})
+
+target_sources(m2ktoolpack PRIVATE m2k_tool_pack.cpp)
+target_link_libraries(m2ktoolpack PRIVATE scopy::core)
+
+target_include_directories(m2ktoolpack PRIVATE
+	${Boost_INCLUDE_DIRS}
+	${Qt5Widgets_INCLUDE_DIRS}
+	${Qt5Concurrent_INCLUDE_DIRS}
+	${Qt5Qml_INCLUDE_DIRS}
+	${Qt5UiTools_INCLUDE_DIRS}
+	${QWT_INCLUDE_DIRS}
+	${QWTPOLAR_INCLUDE_DIRS}
+	${Qt5Svg_INCLUDE_DIRS}
+	${Qt5Xml_INCLUDE_DIRS}
+	${SCOPY_INCLUDE_DIRS}
+	${LIBSIGROK_DECODE_INCLUDE_DIRS}
+	${GLIB_INCLUDE_DIRS}
+	${GLIBCONFIG_INCLUDE_DIRS}
+	${GLIBMM_INCLUDE_DIRS}
+	${GLIBMMCONFIG_INCLUDE_DIRS}
+	${SIGCPP_INCLUDE_DIRS}
+	${SIGCPPCONFIG_INCLUDE_DIRS}
+	${CMAKE_CURRENT_SOURCE_DIR}/src
+	${BREAKPAD_INCLUDE_DIRS}
+	${BREAKPAD_INCLUDE_DIRS}/breakpad)
+
+target_link_libraries(m2ktoolpack PRIVATE
+	        ${BREAKPAD_LIBRARIES}
+		${BREAKPADCLIENT_LIBRARIES}
+		${Qt5Widgets_LIBRARIES}
+		${Qt5Concurrent_LIBRARIES}
+		${Qt5Qml_LIBRARIES}
+		${Qt5UiTools_LIBRARIES}
+		gnuradio::gnuradio-runtime
+		gnuradio::gnuradio-analog
+		gnuradio::gnuradio-blocks
+		gnuradio::gnuradio-fft
+		gnuradio::gnuradio-filter
+		gnuradio::gnuradio-pmt
+		gnuradio::gnuradio-iio
+		gnuradio::gnuradio-scopy
+		gnuradio::gnuradio-m2k
+		${Boost_LIBRARIES}
+		${QWT_LIBRARIES}
+		${QWTPOLAR_LIBRARIES}
+		${Qt5Svg_LIBRARIES}
+		${Qt5Xml_LIBRARIES}
+		${MATIO_LIBRARIES}
+		${LIBSIGROK_DECODE_LIBRARIES}
+		${GLIBMM_LIBRARIES}
+		${SIGCPP_LIBRARIES}
+		${GLIB_LIBRARIES}
+		libm2k::libm2k
+)
+
+add_custom_command(
+    TARGET m2ktoolpack
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:scopy>/plugins
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:m2ktoolpack> $<TARGET_FILE_DIR:scopy>/plugins/
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
