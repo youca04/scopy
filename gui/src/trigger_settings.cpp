@@ -27,13 +27,13 @@
 #include <QDebug>
 #include <QTranslator>
 
-#include <libm2k/analog/m2kanalogin.hpp>
-#include <libm2k/context.hpp>
-#include <libm2k/contextbuilder.hpp>
-#include <libm2k/m2k.hpp>
-#include <libm2k/m2kexceptions.hpp>
-#include <libm2k/m2khardwaretrigger.hpp>
-#include <scopy/core/scopy_exception_handler.hpp>
+// #include <libm2k/analog/m2kanalogin.hpp>
+// #include <libm2k/context.hpp>
+// #include <libm2k/contextbuilder.hpp>
+// #include <libm2k/m2k.hpp>
+// #include <libm2k/m2kexceptions.hpp>
+// #include <libm2k/m2khardwaretrigger.hpp>
+// #include <scopy/core/scopy_exception_handler.hpp>
 #include <scopy/gui/spinbox_a.hpp>
 #include <scopy/gui/trigger_settings.hpp>
 
