@@ -18,6 +18,7 @@ public:
 public:
 	QStringList searchDevices();
 	void start();
+	void stop();
 
 Q_SIGNALS:
 	void printData(const QStringList& uris);

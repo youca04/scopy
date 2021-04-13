@@ -56,3 +56,8 @@ out_destroy_context:
 }
 
 void ContextEnumerator::start() { m_searchTimer.start(TIMER_TIMEOUT_MS); }
+
+void ContextEnumerator::stop()
+{
+	m_searchTimer.stop();
+}
