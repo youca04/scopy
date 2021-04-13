@@ -6,6 +6,8 @@
 
 #include <scopy/core/plugin_interface.hpp>
 
+#include <iio.h>
+
 using namespace scopy::core;
 
 class M2kToolPack : public QObject, public scopy::core::PluginInterface
@@ -19,7 +21,7 @@ public:
 
 	// PluginInterface interface
 public:
-	std::vector<ToolInterface *> getTools() override;
+	std::vector<ToolInterface *> getTools(struct iio_context *ctx/*, scopy::gui::ToolMenu *menu*/) override;
 	bool compatible() const override;
 	std::vector<QWidget *> getControls() override;
 };

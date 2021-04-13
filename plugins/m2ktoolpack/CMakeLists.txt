@@ -332,54 +332,56 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/aboutpage.qrc
 
 # qt5_add_resources(ABOUT_PAGE_RESOURCES ${CMAKE_CURRENT_BINARY_DIR}/aboutpage.qrc)
 
-add_executable(${PROJECT_NAME} WIN32 ${OSX_BUNDLE}
-		${SRC_LIST}
-		${RESOURCES}
-		${m2kscope_RESOURCES}
-		${m2kscope_FORMS_HEADERS}
-		${EXTRA_BUNDLE_FILES}
-		${TRANSLATION_RESOURCES}
-		${ABOUT_PAGE_RESOURCES}
-)
+#add_executable(${PROJECT_NAME} WIN32 ${OSX_BUNDLE}
+#		${SRC_LIST}
+#		${RESOURCES}
+#		${m2kscope_RESOURCES}
+#		${m2kscope_FORMS_HEADERS}
+#		${EXTRA_BUNDLE_FILES}
+#		${TRANSLATION_RESOURCES}
+#		${ABOUT_PAGE_RESOURCES}
+#)
 
-if (WIN32 OR ENABLE_APPLICATION_BUNDLE)
-	set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME Scopy)
-endif()
-target_link_libraries(${PROJECT_NAME} LINK_PRIVATE
-		${BREAKPAD_LIBRARIES}
-		${BREAKPADCLIENT_LIBRARIES}
-		${Qt5Widgets_LIBRARIES}
-		${Qt5Concurrent_LIBRARIES}
-		${Qt5Qml_LIBRARIES}
-		${Qt5UiTools_LIBRARIES}
-		gnuradio::gnuradio-runtime
-		gnuradio::gnuradio-analog
-		gnuradio::gnuradio-blocks
-		gnuradio::gnuradio-fft
-		gnuradio::gnuradio-filter
-		gnuradio::gnuradio-pmt
-		gnuradio::gnuradio-iio
-		gnuradio::gnuradio-scopy
-		gnuradio::gnuradio-m2k
-		${Boost_LIBRARIES}
-		${QWT_LIBRARIES}
-		${QWTPOLAR_LIBRARIES}
-		${Qt5Svg_LIBRARIES}
-		${Qt5Xml_LIBRARIES}
-		${MATIO_LIBRARIES}
-		${LIBSIGROK_DECODE_LIBRARIES}
-		${GLIBMM_LIBRARIES}
-		${SIGCPP_LIBRARIES}
-		${GLIB_LIBRARIES}
-		libm2k::libm2k
-)
+#if (WIN32 OR ENABLE_APPLICATION_BUNDLE)
+#	set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME Scopy)
+#endif()
+#target_link_libraries(${PROJECT_NAME} LINK_PRIVATE
+#		${BREAKPAD_LIBRARIES}
+#		${BREAKPADCLIENT_LIBRARIES}
+#		${Qt5Widgets_LIBRARIES}
+#		${Qt5Concurrent_LIBRARIES}
+#		${Qt5Qml_LIBRARIES}
+#		${Qt5UiTools_LIBRARIES}
+#		gnuradio::gnuradio-runtime
+#		gnuradio::gnuradio-analog
+#		gnuradio::gnuradio-blocks
+#		gnuradio::gnuradio-fft
+#		gnuradio::gnuradio-filter
+#		gnuradio::gnuradio-pmt
+#		gnuradio::gnuradio-iio
+#		gnuradio::gnuradio-scopy
+#		gnuradio::gnuradio-m2k
+#		${Boost_LIBRARIES}
+#		${QWT_LIBRARIES}
+#		${QWTPOLAR_LIBRARIES}
+#		${Qt5Svg_LIBRARIES}
+#		${Qt5Xml_LIBRARIES}
+#		${MATIO_LIBRARIES}
+#		${LIBSIGROK_DECODE_LIBRARIES}
+#		${GLIBMM_LIBRARIES}
+#		${SIGCPP_LIBRARIES}
+#		${GLIB_LIBRARIES}
+#		libm2k::libm2k
+#		scopy::core
+#		scopy::gui
+#)
 
-if (NOT WIN32)
-	find_library(PTHREAD_LIBRARIES pthread)
-	if (PTHREAD_LIBRARIES)
-		target_link_libraries(${PROJECT_NAME} LINK_PRIVATE ${PTHREAD_LIBRARIES})
-	endif()
-endif()
+#if (NOT WIN32)
+#	find_library(PTHREAD_LIBRARIES pthread)
+#	if (PTHREAD_LIBRARIES)
+#		target_link_libraries(${PROJECT_NAME} LINK_PRIVATE ${PTHREAD_LIBRARIES})
+#	endif()
+#endif()
 
 configure_file(Info.plist.cmakein ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 
@@ -389,63 +391,63 @@ if (NOT ${WITH_NATIVEDIALOGS})
 	add_definitions(-DNONATIVE)
 endif()
 
-# Compiler options
-target_compile_options(${PROJECT_NAME} PUBLIC -Wall)
+## Compiler options
+#target_compile_options(${PROJECT_NAME} PUBLIC -Wall)
 
-#List of warnings to be treated as errors
-target_compile_options(${PROJECT_NAME} PUBLIC
-	-Werror=return-type
-	-Werror=uninitialized
-	-Werror=init-self
-	-Werror=switch
-)
+##List of warnings to be treated as errors
+#target_compile_options(${PROJECT_NAME} PUBLIC
+#	-Werror=return-type
+#	-Werror=uninitialized
+#	-Werror=init-self
+#	-Werror=switch
+#)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-		CXX_STANDARD 11
-		CXX_STANDARD_REQUIRED ON
-		CXX_EXTENSIONS OFF
-		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/Info.plist
-)
-
-
-
-set(CMAKE_INSTALL_DOCDIR "${CMAKE_CURRENT_BINARY_DIR}/doc")
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-	option(WITH_DOC "Generate documentation with Doxygen" OFF)
-	if (WITH_DOC)
-		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile_API.in ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile @ONLY)
-		set(HTML_DEST_DIR ${CMAKE_CURRENT_BINARY_DIR})
-		#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/doc DESTINATION ${HTML_DEST_DIR})
-
-		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-			COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile
-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-			COMMENT "Generating API documentation with Doxygen" VERBATIM
-			)
-
-		if(NOT SKIP_INSTALL_ALL)
-			install(DIRECTORY ${HTML_DEST_DIR} DESTINATION ${CMAKE_INSTALL_DOCDIR})
-		endif()
-	endif()
-else()
-	message(STATUS "Doxygen not found, API documentation won't be generated")
-endif()
+#set_target_properties(${PROJECT_NAME} PROPERTIES
+#		CXX_STANDARD 11
+#		CXX_STANDARD_REQUIRED ON
+#		CXX_EXTENSIONS OFF
+#		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/Info.plist
+#)
 
 
-configure_file(scopy.iss.cmakein ${CMAKE_CURRENT_BINARY_DIR}/scopy.iss @ONLY)
-configure_file(scopy-32.iss.cmakein ${CMAKE_CURRENT_BINARY_DIR}/scopy-32.iss @ONLY)
-configure_file(scopy-64.iss.cmakein ${CMAKE_CURRENT_BINARY_DIR}/scopy-64.iss @ONLY)
-configure_file(config.h.cmakein ${CMAKE_CURRENT_BINARY_DIR}/config.h @ONLY)
 
-if (NOT ENABLE_APPLICATION_BUNDLE)
-	install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/scopy.desktop.cmakein ${CMAKE_CURRENT_BINARY_DIR}/scopy.desktop @ONLY)
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/scopy.desktop DESTINATION share/applications)
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon_small.svg DESTINATION share/icons/hicolor/apps/scalable RENAME scopy.svg)
-endif()
+#set(CMAKE_INSTALL_DOCDIR "${CMAKE_CURRENT_BINARY_DIR}/doc")
+#find_package(Doxygen)
+#if(DOXYGEN_FOUND)
+#	option(WITH_DOC "Generate documentation with Doxygen" OFF)
+#	if (WITH_DOC)
+#		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile_API.in ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile @ONLY)
+#		set(HTML_DEST_DIR ${CMAKE_CURRENT_BINARY_DIR})
+#		#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/doc DESTINATION ${HTML_DEST_DIR})
 
-configure_file(qt.conf.cmakein ${CMAKE_CURRENT_BINARY_DIR}/qt.conf @ONLY)
+#		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#			COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile
+#			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#			COMMENT "Generating API documentation with Doxygen" VERBATIM
+#			)
+
+#		if(NOT SKIP_INSTALL_ALL)
+#			install(DIRECTORY ${HTML_DEST_DIR} DESTINATION ${CMAKE_INSTALL_DOCDIR})
+#		endif()
+#	endif()
+#else()
+#	message(STATUS "Doxygen not found, API documentation won't be generated")
+#endif()
+
+
+#configure_file(scopy.iss.cmakein ${CMAKE_CURRENT_BINARY_DIR}/scopy.iss @ONLY)
+#configure_file(scopy-32.iss.cmakein ${CMAKE_CURRENT_BINARY_DIR}/scopy-32.iss @ONLY)
+#configure_file(scopy-64.iss.cmakein ${CMAKE_CURRENT_BINARY_DIR}/scopy-64.iss @ONLY)
+#configure_file(config.h.cmakein ${CMAKE_CURRENT_BINARY_DIR}/config.h @ONLY)
+
+#if (NOT ENABLE_APPLICATION_BUNDLE)
+#	install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+#	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/scopy.desktop.cmakein ${CMAKE_CURRENT_BINARY_DIR}/scopy.desktop @ONLY)
+#	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/scopy.desktop DESTINATION share/applications)
+#	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon_small.svg DESTINATION share/icons/hicolor/apps/scalable RENAME scopy.svg)
+#endif()
+
+#configure_file(qt.conf.cmakein ${CMAKE_CURRENT_BINARY_DIR}/qt.conf @ONLY)
 
 
 #COMPILE M2KTOOLPACK
@@ -469,7 +471,7 @@ add_library(m2ktoolpack SHARED
 	${ABOUT_PAGE_RESOURCES})
 
 target_sources(m2ktoolpack PRIVATE m2k_tool_pack.cpp)
-target_link_libraries(m2ktoolpack PRIVATE scopy::core)
+target_link_libraries(m2ktoolpack PRIVATE scopy::core scopy::gui)
 
 target_include_directories(m2ktoolpack PRIVATE
 	${Boost_INCLUDE_DIRS}
