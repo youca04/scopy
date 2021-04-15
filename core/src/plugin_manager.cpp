@@ -15,19 +15,21 @@ PluginManager::PluginManager()
 {
 	// TODO: set a path from cmake that points to where the installed plugins will be placed
 	QStringList nameFilter{"*.dylib", "*.so", "*.dll"}; // threads?
+	qDebug() << "path: " << QDir::current().path() + "/plugins";
 	QDir dir(QDir::current().path() + "/plugins");
 	for (const QString& pg : dir.entryList(nameFilter)) {
 		QPluginLoader loader(dir.path() + "/" + pg);
+		qDebug() << "loaded plugin: " << pg;
 		qDebug() << loader.metaData();
 		QObject* plugin = loader.instance(); // check nullptr
 		m_plugins.push_back(qobject_cast<PluginInterface*>(plugin));
 	}
 
-//	qDebug() << "Libraries path: " << QLibraryInfo::location(QLibraryInfo::LibrariesPath);
-//	qDebug() << "Dynamic loading from: " << QCoreApplication::libraryPaths();
+	//	qDebug() << "Libraries path: " << QLibraryInfo::location(QLibraryInfo::LibrariesPath);
+	//	qDebug() << "Dynamic loading from: " << QCoreApplication::libraryPaths();
 }
 
-PluginManager &PluginManager::getInstance()
+PluginManager& PluginManager::getInstance()
 {
 	static PluginManager instance;
 

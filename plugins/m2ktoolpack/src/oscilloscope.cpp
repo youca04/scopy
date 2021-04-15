@@ -202,7 +202,7 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 		fft_plot.setYaxisMouseGesturesEnabled(i, false);
 
 	iio = iio_manager::get_instance(ctx,
-			filt->device_name(TOOL_OSCILLOSCOPE));
+			"m2k-adc");
 	gr::hier_block2_sptr hier = iio->to_hier_block2();
 	qDebug(CAT_OSCILLOSCOPE) << "Manager created:\n" << gr::dot_graph(hier).c_str();
 
@@ -446,8 +446,8 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 	ch_ui = new Ui::ChannelSettings();
 	ch_ui->setupUi(ui->channelSettings);
 
-	ch_ui->filter1->setVisible(prefPanel->getShowADCFilters());
-	ch_ui->filter2->setVisible(prefPanel->getShowADCFilters());
+//	ch_ui->filter1->setVisible(prefPanel->getShowADCFilters());
+//	ch_ui->filter2->setVisible(prefPanel->getShowADCFilters());
 
 	ch_ui->horizontal->insertWidget(1, timeBase, 0, Qt::AlignLeft);
 	ch_ui->horizontal->insertWidget(2, timePosition, 0, Qt::AlignLeft);
@@ -540,7 +540,7 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 
 	connect(ui->runSingleWidget, &RunSingleWidget::toggled,
 		[=](bool checked){
-		auto btn = dynamic_cast<CustomPushButton *>(run_button);
+		auto btn = reinterpret_cast<CustomPushButton *>(run_button);
 		btn->setChecked(checked);
 	});
 	connect(run_button, &QPushButton::toggled,
@@ -776,10 +776,10 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 
 	connect(gsettings_ui->xyLineThickness,SIGNAL(currentIndexChanged(int)),this, SLOT(on_xyLineThickness_currentIndexChanged(int)));
 
-	api->setObjectName(QString::fromStdString(Filter::tool_name(
-			TOOL_OSCILLOSCOPE)));
-	api->load(*settings);
-	api->js_register(engine);
+//	api->setObjectName(QString::fromStdString(Filter::tool_name(
+//			TOOL_OSCILLOSCOPE)));
+//	api->load(*settings);
+//	api->js_register(engine);
 
 	plot.setDisplayScale(probe_attenuation[current_channel]);
 	onTriggerSourceChanged(trigger_settings.currentChannel());
@@ -802,7 +802,7 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 
 	current_ch_widget = current_channel;
 
-	readPreferences();
+//	readPreferences();
 
 	connect(ui->printBtn, &QPushButton::clicked,
 		[=]() {
@@ -825,9 +825,9 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 		ui->btnTrigger->setChecked(false);
 	}
 
-	connect(this, &Tool::detachedState,
-		this, &Oscilloscope::toolDetached);
-	toolDetached(false);
+//	connect(this, &Tool::detachedState,
+//		this, &Oscilloscope::toolDetached);
+//	toolDetached(false);
 
 	connect(&plot,SIGNAL(leftGateChanged(double)),SLOT(onLeftGateChanged(double)));
 	connect(&plot,SIGNAL(rightGateChanged(double)),SLOT(onRightGateChanged(double)));
@@ -1177,7 +1177,7 @@ Oscilloscope::~Oscilloscope()
 		disableMixedSignalView();
 	}
 
-	disconnect(prefPanel, &Preferences::notify, this, &Oscilloscope::readPreferences);
+//	disconnect(prefPanel, &Preferences::notify, this, &Oscilloscope::readPreferences);
 
 
 	ui->runSingleWidget->toggle(false);
@@ -1246,34 +1246,34 @@ void Oscilloscope::settingsLoaded()
 
 void Oscilloscope::readPreferences()
 {
-	plot.setGraticuleEnabled(prefPanel->getOsc_graticule_enabled());
-	ui->instrumentNotes->setVisible(prefPanel->getInstrumentNotesActive());
+//	plot.setGraticuleEnabled(prefPanel->getOsc_graticule_enabled());
+//	ui->instrumentNotes->setVisible(prefPanel->getInstrumentNotesActive());
 
-	// enable/disable mini histogram plot
-	toggleMiniHistogramPlotVisible(prefPanel->getMini_hist_enabled());
+//	// enable/disable mini histogram plot
+//	toggleMiniHistogramPlotVisible(prefPanel->getMini_hist_enabled());
 
-	bool foundChannel = false;
-	for (unsigned int i = 0; i < nb_channels + nb_math_channels + nb_ref_channels;
-	     i++) {
-		ChannelWidget *cw = static_cast<ChannelWidget *>(
-					    ui->channelsList->itemAt(i)->widget());
+//	bool foundChannel = false;
+//	for (unsigned int i = 0; i < nb_channels + nb_math_channels + nb_ref_channels;
+//	     i++) {
+//		ChannelWidget *cw = static_cast<ChannelWidget *>(
+//					    ui->channelsList->itemAt(i)->widget());
 
-		if (cw->enableButton()->isChecked()) {
-			/* At least one channel is enabled,
-			 * so we can enable/disable labels */
-			enableLabels(prefPanel->getOsc_labels_enabled());
-			foundChannel = true;
-			break;
-		}
-	}
+//		if (cw->enableButton()->isChecked()) {
+//			/* At least one channel is enabled,
+//			 * so we can enable/disable labels */
+//			enableLabels(prefPanel->getOsc_labels_enabled());
+//			foundChannel = true;
+//			break;
+//		}
+//	}
 
-	if (!foundChannel) {
-		/* No channel is enabled, so we disable the labels */
-		enableLabels(false);
-	}
+//	if (!foundChannel) {
+//		/* No channel is enabled, so we disable the labels */
+//		enableLabels(false);
+//	}
 
-	update_chn_settings_panel(current_ch_widget);
-	setFilteringEnabled(prefPanel->getOsc_filtering_enabled());
+//	update_chn_settings_panel(current_ch_widget);
+//	setFilteringEnabled(prefPanel->getOsc_filtering_enabled());
 
 }
 
@@ -3209,9 +3209,9 @@ void adiscope::Oscilloscope::onChannelWidgetSelected(bool checked)
 		return;
 	}
 
-	if (isVisible() && plot.labelsEnabled() != prefPanel->getOsc_labels_enabled()) {
-		enableLabels(prefPanel->getOsc_labels_enabled());
-	}
+//	if (isVisible() && plot.labelsEnabled() != prefPanel->getOsc_labels_enabled()) {
+//		enableLabels(prefPanel->getOsc_labels_enabled());
+//	}
 
 	ChannelWidget *w = static_cast<ChannelWidget *>(QObject::sender());
 	int id = w->id();
@@ -3879,8 +3879,8 @@ void Oscilloscope::update_chn_settings_panel(int id)
 
 
 	} else {
-		ch_ui->filter1->setVisible(prefPanel->getShowADCFilters());
-		ch_ui->filter2->setVisible(prefPanel->getShowADCFilters());
+//		ch_ui->filter1->setVisible(prefPanel->getShowADCFilters());
+//		ch_ui->filter2->setVisible(prefPanel->getShowADCFilters());
 		ch_ui->math_settings_widget->setVisible(false);
 		ch_ui->btnAutoset->setVisible(autosetEnabled);
 		ch_ui->wCoupling->setVisible(true);

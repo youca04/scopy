@@ -498,10 +498,10 @@ SignalGenerator::SignalGenerator(struct iio_context *_ctx, Filter *filt,
 
 	fileManager = new FileManager("Signal Generator");
 
-	api->setObjectName(QString::fromStdString(Filter::tool_name(
-	                           TOOL_SIGNAL_GENERATOR)));
-	api->load(*settings);
-	api->js_register(engine);
+//	api->setObjectName(QString::fromStdString(Filter::tool_name(
+//	                           TOOL_SIGNAL_GENERATOR)));
+//	api->load(*settings);
+//	api->js_register(engine);
 
 	connect(ui->rightMenu, SIGNAL(finished(bool)), this,
 	        SLOT(rightMenuFinished(bool)));
@@ -574,10 +574,10 @@ SignalGenerator::SignalGenerator(struct iio_context *_ctx, Filter *filt,
 	        this, SLOT(setFunction(const QString&)));
 
 	connect(ui->run_button, SIGNAL(toggled(bool)), runButton(),
-	        SLOT(setChecked(bool)));
+		SLOT(setChecked(bool)));
 	connect(runButton(), SIGNAL(toggled(bool)), ui->run_button,
 		SLOT(toggle(bool)));
-	connect(runButton(), SIGNAL(toggled(bool)),
+	connect(ui->run_button, SIGNAL(toggled(bool)),
 		this, SLOT(startStop(bool)));
 
 	connect(ui->refreshBtn, SIGNAL(clicked()),
@@ -591,7 +591,7 @@ SignalGenerator::SignalGenerator(struct iio_context *_ctx, Filter *filt,
 	auto ptr = getCurrentData();
 	phase->setFrequency(ptr->frequency);
 
-	readPreferences();
+//	readPreferences();
 
 	// Reduce the extent of the yLeft axis because it is not needed
 	plot->axisWidget(QwtPlot::yLeft)->scaleDraw()->setMinimumExtent(65);

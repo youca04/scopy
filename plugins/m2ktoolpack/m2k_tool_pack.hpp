@@ -21,7 +21,7 @@ public:
 
 	// PluginInterface interface
 public:
-	std::vector<ToolInterface *> getTools(struct iio_context *ctx/*, scopy::gui::ToolMenu *menu*/) override;
+	std::vector<ToolInterface *> getTools(struct iio_context *ctx/*, scopy::gui::ToolMenu *menu*/, void *toolMenu) override;
 	bool compatible() const override;
 	std::vector<QWidget *> getControls() override;
 };

@@ -31,11 +31,11 @@ Tool::Tool(struct iio_context *ctx, ToolMenuItem *toolMenuItem,
 		ApiObject *api, const QString& name,
 		ToolLauncher *parent) :
 	QWidget(static_cast<QWidget *>(parent)),
-	ctx(ctx), run_button(nullptr/*toolMenuItem->getToolStopBtn()*/), api(api),
+	ctx(ctx), run_button(toolMenuItem->getToolStopBtn()), api(api),
 	name(name), saveOnExit(true), isDetached(false), m_running(false),
 	window(nullptr), toolMenuItem(toolMenuItem)
 {
-//	toolMenuItem->setDisabled(false);
+	toolMenuItem->setDisabled(false);
 
 //	connect(this, &Tool::detachedState,
 //		parent, &ToolLauncher::toolDetached);
@@ -56,18 +56,18 @@ Tool::Tool(struct iio_context *ctx, ToolMenuItem *toolMenuItem,
 			this, &Tool::loadState);
 	}
 
-//	connect(toolMenuItem, &ToolMenuItem::detach,
-//		this, &Tool::detached);
-//	connect(this, &Tool::detachedState,
-//		toolMenuItem, &ToolMenuItem::setDetached);
+	connect(toolMenuItem, &ToolMenuItem::detach,
+		this, &Tool::detached);
+	connect(this, &Tool::detachedState,
+		toolMenuItem, &ToolMenuItem::setDetached);
 }
 
 Tool::~Tool()
 {
-	disconnect(prefPanel, &Preferences::notify, this, &Tool::readPreferences);
+//	disconnect(prefPanel, &Preferences::notify, this, &Tool::readPreferences);
 
 	run_button->setChecked(false);
-//	toolMenuItem->setDisabled(true);
+	toolMenuItem->setDisabled(true);
 
 	delete settings;
 

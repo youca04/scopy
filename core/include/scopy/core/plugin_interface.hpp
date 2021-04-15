@@ -48,7 +48,7 @@ public:
 	 * @note: the tool menu is used to get the corresponding tool menu item
 	 * @note Will return an empty list in case the iio_context is not compatible with the plugin
 	 */
-	virtual std::vector<ToolInterface*> getTools(struct iio_context *ctx/*, scopy::gui::ToolMenu *menu*/) = 0;
+	virtual std::vector<ToolInterface*> getTools(struct iio_context *ctx/*, scopy::gui::ToolMenu *menu*/, void *toolMenu) = 0;
 
 	/**
 	 * @brief Returns if the iio_context is compatible with the plugin

@@ -37,6 +37,8 @@ public:
 	 */
 	virtual QWidget* getWidget() = 0;
 
+	virtual int getIdentifier() const = 0;
+
 	// start / stop tool interface forwards data soure start stop (debugger manual calibration)
 
 	// ToolDetails -> {name, icon, } getToolDetails static
@@ -46,6 +48,13 @@ public:
 //	virtual std::string name() const = 0;
 
 //	static virtual QWidget * getToolMenuButtonBeforeConnect() { return nullptr; }
+
+	// 1
+	// class scopy::gui::ToolMenu . void *    -> reinterpret_cast<.adiscope::ToolMenu>
+
+	// 2
+	// run_button -> start/top -> tool_interface
+	// disable/ enable run button -> connect (toolinterface, runbutton); // QObject
 
 	/**
 	 * @brief Returns the list of preferences that are supported by this tool

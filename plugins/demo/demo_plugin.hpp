@@ -17,7 +17,7 @@ public:
 	DemoPlugin();
 
 public: // PluginInterface
-	std::vector<ToolInterface*> getTools(/*iio_context*/) override;
+	std::vector<ToolInterface*> getTools(struct iio_context *ctx, scopy::gui::ToolMenu *menu) override;
 	bool compatible(/*iio_context*/) const override;
 	std::vector<QWidget*> getControls(/*iio_context*/) override;
 	int priority() const override { return 0; }

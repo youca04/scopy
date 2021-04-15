@@ -21,11 +21,11 @@ int main(int argc, char* argv[])
 
 	//	qDebug() << QDir::current();
 
-	MainWindow w;
-	w.show();
+	// MainWindow w;
+	// w.show();
 
-	//	scopy::gui::ToolLauncher tl;
-	//	tl.show();
+	scopy::gui::ToolLauncher tl;
+	tl.show();
 
 	PluginManager::getInstance();
 

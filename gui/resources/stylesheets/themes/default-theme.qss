@@ -655,3 +655,24 @@ scopy--gui--DropdownSwitchList QCheckBox::indicator {
 }
 
 /*************************************************************/
+
+
+/******************** Stop buttons *************************/
+
+QPushButton[stopButton=true] {
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+QPushButton[stopButton=true]:enabled {
+    background-image: url(:/icons/ico-stop.svg);
+}
+
+QPushButton[stopButton=true][disabled=true][enabled=false] {
+    background-image: url(:/icons/ico-stop.svg);
+}
+
+QPushButton[stopButton=true]:checked {
+    background-image: url(:/icons/ico-play-green.svg);
+}
+

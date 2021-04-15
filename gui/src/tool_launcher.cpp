@@ -113,15 +113,28 @@ void ToolLauncher::detectedUris(const QStringList& uris)
 //		iio_context_destroy(tempCtx);
 	}
 
+	std::vector<ToolInterface*> tools;
+
 	// when connect is clicked
 	// lets go through the plugins and see what we have compatible with this ctx
 	for (PluginInterface *plugin : m_plugins) {
-		std::vector<ToolInterface*> tools = plugin->getTools(tempCtx);
-		for (ToolInterface *tl : tools) {
+		tools = plugin->getTools(tempCtx, m_toolMenu);
+//		for (ToolInterface *tl : tools) {
 //			tl->getWidget()->show();
-			swapMenu(tl->getWidget());
-		}
+////			swapMenu(tl->getWidget());
+//		}
+//		swapMenu(tools[0]->getWidget());
+//		tools[1]->getWidget()->show();
 	}
+
+	connect(m_toolMenu, &ToolMenu::toolSelected, [=](int tool) {
+		qDebug() << "tool selected: " << tool;
+		for (ToolInterface *tl : tools) {
+			if (tl->getIdentifier() == tool) {
+				swapMenu(tl->getWidget());
+			}
+		}
+	});
 
 
 }
