@@ -359,6 +359,7 @@ namespace adiscope {
       }
       d_index += nitems;
 
+      std::cout << "scope_sink_f processing index: " << d_index << " \n";
       // If we've have a full d_size of items in the buffers, plot.
       if((d_end != 0 && !d_displayOneBuffer) ||
                       ((d_triggered) && (d_index == d_end) && d_end != 0 && d_displayOneBuffer)) {
@@ -383,6 +384,7 @@ namespace adiscope {
                               || !d_cleanBuffers) {
                       d_last_time = gr::high_res_timer_now();
                       if (d_qApplication) {
+			      std::cout << "scope_sink_f post event: " << nItemsToSend << " items\n";
                               d_qApplication->postEvent(this->plot,
                                                         new IdentifiableTimeUpdateEvent(d_buffers,
                                                                                         nItemsToSend,

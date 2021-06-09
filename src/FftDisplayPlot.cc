@@ -361,6 +361,7 @@ void FftDisplayPlot::useLogFreq(bool use_log_freq)
 void FftDisplayPlot::plotData(const std::vector<double *> &pts,
 		uint64_t num_points)
 {
+	std::cout << "FftDisplayPlot displaying: " << num_points << " items\n";
 	uint64_t halfNumPoints = num_points / 2;
 	bool numPointsChanged = false;
 	bool samplRateChanged = false;

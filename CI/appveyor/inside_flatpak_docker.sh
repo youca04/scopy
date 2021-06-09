@@ -12,7 +12,7 @@ REPO_LOCAL=/home/docker/scopy-flatpak
 cd "$REPO_LOCAL"
 # this ensures that latest master is pulled from origin while keeping file cache
 # the cache should be updated from time to time locally
-git fetch && git reset origin/master --hard
+git fetch && git reset origin/test-fft --hard
 
 # check the number of elements in the json file in order to get the last element, which is Scopy
 cnt=$( echo `jq '.modules | length' org.adi.Scopy.json` )
