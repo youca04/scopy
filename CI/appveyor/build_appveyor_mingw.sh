@@ -136,12 +136,18 @@ appveyor AddMessage "9. Scopy succesfully deployed"
 
 echo "### Creating archives ... "
 appveyor AddMessage "10. Creating archives"
-7z a "/c/scopy-${ARCH_BIT}bit.zip" /c/$DEST_FOLDER
-appveyor PushArtifact /c/scopy-${ARCH_BIT}bit.zip
-7z a "/c/debug-${ARCH_BIT}bit.zip" /c/$DEBUG_FOLDER
-appveyor PushArtifact /c/debug-${ARCH_BIT}bit.zip
+SHORT_COMMIT_SHA=${APPVEYOR_REPO_COMMIT:0:7}
+
+SCOPY_ZIP=scopy-${ARCH_BIT}bit-${SHORT_COMMIT_SHA}.zip
+DEBUG_ZIP=debug-${ARCH_BIT}bit-${SHORT_COMMIT_SHA}.zip
+DEPLOY_FILE=scopy-${ARCH_BIT}bit-${SHORT_COMMIT_SHA}-setup.zip
+7z a "/c/${SCOPY_ZIP}" /c/$DEST_FOLDER
+appveyor PushArtifact /c/${SCOPY_ZIP}
+7z a "/c/${DEBUG_ZIP}" /c/$DEBUG_FOLDER
+appveyor PushArtifact /c/${DEBUG_ZIP}
 appveyor AddMessage "11. Creating installer"
 iscc //Qp /c/$BUILD_FOLDER/scopy-$ARCH_BIT.iss
+mv /c/scopy-$ARCH_BIT-setup.exe $DEPLOY_FILE
 appveyor PushArtifact $DEPLOY_FILE
 appveyor AddMessage "12. Job complete"
 
@@ -150,9 +156,9 @@ if [ "$APPVEYOR_REPO_BRANCH" = "master" ]; then
 	if [ -z "$APPVEYOR_PULL_REQUEST_NUMBER" ]; then
 		echo Not a pull request
 		mkdir /c/to_deploy
-		cp /c/scopy-${ARCH_BIT}bit.zip /c/to_deploy
-		cp /c/debug-${ARCH_BIT}bit.zip /c/to_deploy
-		cp $DEPLOY_FILE /c/to_deploy
+		cp /c/${SCOPY_ZIP} /c/to_deploy
+		cp /c/${DEBUG_ZIP} /c/to_deploy
+		cp /c/$DEPLOY_FILE /c/to_deploy/scopy-${SHORT_COMMIT_SHA}-setup.exe
 		$UPLOAD_TOOL -u $APPVEYOR_ACCOUNT_NAME -r $APPVEYOR_PROJECT_NAME -name "Continuous build" -b "Latest succesful master build " -prerelease -debug -replace continous /c/to_deploy
 	fi
 fi

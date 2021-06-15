@@ -16,17 +16,18 @@ jobs:
             docker run --privileged \
                 -v `pwd`:$GITHUB_WORKSPACE:rw \
                 -e "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" \
+                -e "GITHUB_SHA=$GITHUB_SHA" \
                 adisuciu/scopy-flatpak-ubuntu20:latest /bin/bash -xe $GITHUB_WORKSPACE/CI/appveyor/inside_flatpak_docker.sh
     - uses: actions/upload-artifact@v2
       with:
-        name: Scopy.flatpak
-        path: ${{ github.workspace }}/Scopy.flatpak
+        name: Scopy*.flatpak
+        path: ${{ github.workspace }}/Scopy*.flatpak
     - name: Upload master flatpak build to continous prerelease
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       run: |
         wget https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz 
         tar xvf ghr_v0.13.0_linux_amd64.tar.gz
-        ghr_v0.13.0_linux_amd64/ghr -u ${{ github.repository_owner }} -r scopy -name "Continuous build" -b "Latest succesful master build " -prerelease -debug -replace continous ${{ github.workspace }}/Scopy.flatpak
+        ghr_v0.13.0_linux_amd64/ghr -u ${{ github.repository_owner }} -r scopy -name "Continuous build" -b "Latest succesful master build " -prerelease -debug -replace continous ${{ github.workspace }}/*.flatpak
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

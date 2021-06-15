@@ -42,5 +42,7 @@ rm tmp.json
 make clean
 make -j4
 
+git_hash=${GITHUB_SHA:0:7}
+echo $git_hash
 # Copy the Scopy.flatpak file in $GITHUB_WORKSPACE (which is the external location, mount when docker starts)
-cp Scopy.flatpak $ARTIFACT_LOCATION/
+cp Scopy.flatpak $ARTIFACT_LOCATION/Scopy-$git_hash.flatpak
