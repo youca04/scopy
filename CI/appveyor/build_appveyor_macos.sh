@@ -21,7 +21,8 @@ mkdir -p build
 cd build
 
 if [ "$APPVEYOR" == "true" ] ; then
-	cmake ..
+	MACOSX_DEPLOYMENT_TARGET=10.13
+	cmake -DMIN_MACOS_VERSION=10.13 ..
 	make -j${NUM_JOBS}
 else
 	cmake -DCMAKE_PREFIX_PATH="$STAGINGDIR;${QT_PATH}/lib/cmake" -DCMAKE_INSTALL_PREFIX="$STAGINGDIR" \

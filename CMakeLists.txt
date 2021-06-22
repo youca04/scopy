@@ -24,6 +24,10 @@ set(Python_ADDITIONAL_VERSIONS 3)
 FIND_PACKAGE(PythonInterp REQUIRED)
 set(PYTHON_VERSION python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
 
+if (MIN_MACOS_VERSION)
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "${MIN_MACOS_VERSION}" CACHE STRING "Minimum OS X deployment version" FORCE)
+endif()
+
 
 function(dump_cmake_variables)
     get_cmake_property(_variableNames VARIABLES)
