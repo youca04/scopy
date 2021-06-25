@@ -161,6 +161,7 @@ SpectrumAnalyzer::SpectrumAnalyzer(struct iio_context *ctx, Filter *filt,
 			m_adc_nb_channels = m_generic_analogin->getNbChannels();
 		}
 		iio = iio_manager::get_instance(ctx, adc_name);
+		src = boost::dynamic_pointer_cast<M2kSource>(iio->getSources()[0]);
 
 		for (unsigned int i = 0; i < m_adc_nb_channels; i++) {
 			channel_names.push_back(
@@ -1270,7 +1271,7 @@ void SpectrumAnalyzer::build_gnuradio_block_chain()
 		auto ctm = gr::blocks::complex_to_mag_squared::make(1);
 
 		// iio(i)->fft->ctm->fft_sink
-		fft_ids[i] = iio->connect(fft, i, 0, true, fft_size);
+		fft_ids[i] = iio->connect(src, fft, i, 0, true, fft_size);
 		iio->connect(fft, 0, ctm, 0);
 		iio->connect(ctm, 0, fft_sink, i);
 
@@ -1888,7 +1889,7 @@ void SpectrumAnalyzer::setFftSize(uint size)
 
 		iio->disconnect(fft_ids[i]);
 
-		fft_ids[i] = iio->connect(fft, i, 0, true, fft_size * m_nb_overlapping_avg);
+		fft_ids[i] = iio->connect(src, fft, i, 0, true, fft_size * m_nb_overlapping_avg);
 
 		iio->connect(fft, 0, channels[i]->ctm_block, 0);
 		iio->connect(channels[i]->ctm_block, 0, fft_sink, i);
@@ -1900,7 +1901,7 @@ void SpectrumAnalyzer::setFftSize(uint size)
 		channels[i]->fft_block = fft;
 		channels[i]->setFftWindow(channels[i]->fftWindow(), size);
 
-		iio->set_buffer_size(fft_ids[i], size * m_nb_overlapping_avg);
+		src->set_buffer_size(size * m_nb_overlapping_avg);
 	}
 
 	if (started) {

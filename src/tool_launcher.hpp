@@ -56,6 +56,7 @@
 #include "connectDialog.hpp"
 #include "toolmenu.h"
 #include "session_info.h"
+#include "iio_manager.hpp"
 
 extern "C" {
 	struct iio_context;
@@ -195,6 +196,7 @@ private:
 	Ui::ToolLauncher *ui;
 	struct iio_context *ctx;
 	libm2k::context::M2k *m_m2k;
+	boost::shared_ptr<iio_manager> iio;
 	ScopyAboutDialog *about;
 
 	ToolMenu *menu;

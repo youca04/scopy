@@ -203,6 +203,7 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 
 	iio = iio_manager::get_instance(ctx,
 			filt->device_name(TOOL_OSCILLOSCOPE));
+	src = boost::dynamic_pointer_cast<M2kSource>(iio->getSources()[0]);
 	gr::hier_block2_sptr hier = iio->to_hier_block2();
 	qDebug(CAT_OSCILLOSCOPE) << "Manager created:\n" << gr::dot_graph(hier).c_str();
 
@@ -278,7 +279,7 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 
 
 	for (unsigned int i = 0; i < nb_channels; i++) {
-		ids[i] = iio->connect(adc_samp_conv_block, i, i,
+		ids[i] = iio->connect(src, adc_samp_conv_block, i, i,
 				true, qt_time_block->nsamps());
 
 		iio->connect(adc_samp_conv_block, i, qt_time_block, i);
@@ -458,14 +459,14 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 	init_channel_settings();
 
 	connect(ch_ui->filter_en, &QCheckBox::toggled, [&](bool en) {
-			iio->freq_comp_filt[current_ch_widget][0]->set_enable(en);
+			src->freq_comp_filt[current_ch_widget][0]->set_enable(en);
 	});
 	connect(ch_ui->filter_TC, &QLineEdit::textChanged, [&](QString str) {
 		bool ok;
 		float val = str.toFloat(&ok);
 		if(!ok)
 			return;
-		iio->freq_comp_filt[current_ch_widget][0]->set_TC(val);
+		src->freq_comp_filt[current_ch_widget][0]->set_TC(val);
 
 	});
 	connect(ch_ui->filter_gain, &QLineEdit::textChanged, [&](QString str) {
@@ -473,19 +474,19 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 		float val = str.toFloat(&ok);
 		if(!ok)
 			return;
-		iio->freq_comp_filt[current_ch_widget][0]->set_filter_gain(val);
+		src->freq_comp_filt[current_ch_widget][0]->set_filter_gain(val);
 	});
 
 
 	connect(ch_ui->filter2_en, &QCheckBox::toggled, [&](bool en) {
-			iio->freq_comp_filt[current_ch_widget][1]->set_enable(en);
+			src->freq_comp_filt[current_ch_widget][1]->set_enable(en);
 	});
 	connect(ch_ui->filter2_TC, &QLineEdit::textChanged, [&](QString str) {
 		bool ok;
 		float val = str.toFloat(&ok);
 		if(!ok)
 			return;
-		iio->freq_comp_filt[current_ch_widget][1]->set_TC(val);
+		src->freq_comp_filt[current_ch_widget][1]->set_TC(val);
 
 	});
 	connect(ch_ui->filter2_gain, &QLineEdit::textChanged, [&](QString str) {
@@ -493,7 +494,7 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 		float val = str.toFloat(&ok);
 		if(!ok)
 			return;
-		iio->freq_comp_filt[current_ch_widget][1]->set_filter_gain(val);
+		src->freq_comp_filt[current_ch_widget][1]->set_filter_gain(val);
 	});
 
 	timeBase->setValue(plot.HorizUnitsPerDiv());
@@ -612,7 +613,7 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 	connect(&trigger_settings, SIGNAL(triggerModeChanged(int)),
 		this, SLOT(onTriggerModeChanged(int)));
 
-	connect(&*iio, SIGNAL(timeout()),
+	connect(&*src, SIGNAL(timeout()),
 			&trigger_settings, SLOT(autoTriggerDisable()));
 	connect(&plot, SIGNAL(newData()),
 			&trigger_settings, SLOT(autoTriggerEnable()));
@@ -621,7 +622,7 @@ Oscilloscope::Oscilloscope(struct iio_context *ctx, Filter *filt,
 	connect(&plot, SIGNAL(filledScreen(bool, unsigned int)), this,
 		SLOT(onFilledScreen(bool, unsigned int)));
 
-	connect(&*iio, SIGNAL(timeout()),
+	connect(&*src, SIGNAL(timeout()),
 			SLOT(onIioDataRefillTimeout()));
 	connect(&plot, SIGNAL(newData()), this, SLOT(onPlotNewData()));
 
@@ -1320,7 +1321,7 @@ void Oscilloscope::enableMixedSignalView(ChannelWidget *cw)
 
 	if (iioStarted) {
 		// enable the mixed_source in the iio_manager
-		iio->enableMixedSignal(mixed_source);
+		src->enableMixedSignal(mixed_source);
 
 		boost::shared_ptr<adc_sample_conv> block = dynamic_pointer_cast<adc_sample_conv>(adc_samp_conv_block);
 
@@ -1368,7 +1369,7 @@ void Oscilloscope::disableMixedSignalView()
 
 	if (iioStarted) {
 		// disable the mixed_source in the iio_manager
-		iio->disableMixedSignal(mixed_source);
+		src->disableMixedSignal(mixed_source);
 
 		boost::shared_ptr<adc_sample_conv> block = dynamic_pointer_cast<adc_sample_conv>(adc_samp_conv_block);
 
@@ -1589,7 +1590,7 @@ void Oscilloscope::activateAcCoupling(int i)
 	}
 
 	for(int ch = 0; ch < nb_channels; ch++) {
-		iio->set_buffer_size(ids[ch], active_sample_count);
+		src->set_buffer_size(active_sample_count);
 		dc_cancel.at(ch)->set_buffer_size(active_sample_count);
 	}
 	if (mixed_source) {
@@ -1686,7 +1687,7 @@ void Oscilloscope::deactivateAcCoupling(int i)
 	}
 
 	for(int ch = 0; ch < nb_channels; ch++) {
-		iio->set_buffer_size(ids[ch], active_sample_count);
+		src->set_buffer_size(active_sample_count);
 		dc_cancel.at(ch)->set_buffer_size(active_sample_count);
 	}
 	if (mixed_source) {
@@ -2669,7 +2670,7 @@ void Oscilloscope::toggle_blockchain_flow(bool en)
 
 		if (m_mixedSignalViewEnabled) {
 			// enable the mixed_source in the iio_manager
-			iio->enableMixedSignal(mixed_source);
+			src->enableMixedSignal(mixed_source);
 
 			boost::shared_ptr<adc_sample_conv> block = dynamic_pointer_cast<adc_sample_conv>(adc_samp_conv_block);
 
@@ -2708,7 +2709,7 @@ void Oscilloscope::toggle_blockchain_flow(bool en)
 		}
 
 		if (m_mixedSignalViewEnabled) {
-			iio->disableMixedSignal(mixed_source);
+			src->disableMixedSignal(mixed_source);
 
 			boost::shared_ptr<adc_sample_conv> block = dynamic_pointer_cast<adc_sample_conv>(adc_samp_conv_block);
 
@@ -2830,7 +2831,7 @@ void Oscilloscope::autosetFFT()
 	}
 	autosetFFTSink = blocks::vector_sink_f::make();
 
-	autoset_id[0] = iio->connect(fft,autosetChannel,0,true);
+	autoset_id[0] = iio->connect(src,fft,autosetChannel,0,true);
 
 	iio->connect(fft,0,ctm,0);
 	iio->connect(ctm,0,log,0);
@@ -3391,7 +3392,7 @@ void Oscilloscope::onCmbMemoryDepthChanged(QString value)
 	last_set_sample_count = active_plot_sample_count;
 
 	for (unsigned int i = 0; i < nb_channels; i++) {
-		iio->set_buffer_size(ids[i], active_sample_count);
+		src->set_buffer_size(active_sample_count);
 		dc_cancel.at(i)->set_buffer_size(active_sample_count);
 	}
 	if (mixed_source) {
@@ -3506,8 +3507,8 @@ void adiscope::Oscilloscope::onHorizScaleValueChanged(double value)
 		setSampleRate(active_sample_rate);
 		for(auto i=0;i<nb_channels;i++)
 		{
-			iio->freq_comp_filt[i][0]->set_sample_rate(active_sample_rate);
-			iio->freq_comp_filt[i][1]->set_sample_rate(active_sample_rate);
+			src->freq_comp_filt[i][0]->set_sample_rate(active_sample_rate);
+			src->freq_comp_filt[i][1]->set_sample_rate(active_sample_rate);
 		}
 		trigger_settings.setTriggerDelay(active_trig_sample_count);
 		last_set_time_pos = active_time_pos;
@@ -3518,7 +3519,7 @@ void adiscope::Oscilloscope::onHorizScaleValueChanged(double value)
 	}
 
 	for (unsigned int i = 0; i < nb_channels; i++) {
-		iio->set_buffer_size(ids[i], active_sample_count);
+		src->set_buffer_size(active_sample_count);
 		dc_cancel.at(i)->set_buffer_size(active_sample_count);
 	}
 
@@ -3528,7 +3529,7 @@ void adiscope::Oscilloscope::onHorizScaleValueChanged(double value)
 	}
 
 
-	iio->set_device_timeout((active_sample_count / active_sample_rate) * 1000 + 100);
+	src->set_device_timeout((active_sample_count / active_sample_rate) * 1000 + 100);
 
 
 	if (started) {
@@ -3699,13 +3700,13 @@ void adiscope::Oscilloscope::onTimePositionChanged(double value)
 		setSampleRate(active_sample_rate);
 		for(auto i=0;i<nb_channels;i++)
 		{
-			iio->freq_comp_filt[i][0]->set_sample_rate(active_sample_rate);
-			iio->freq_comp_filt[i][1]->set_sample_rate(active_sample_rate);
+			src->freq_comp_filt[i][0]->set_sample_rate(active_sample_rate);
+			src->freq_comp_filt[i][1]->set_sample_rate(active_sample_rate);
 		}
 	}
 
 	for (unsigned int i = 0; i < nb_channels; i++) {
-		iio->set_buffer_size(ids[i], active_sample_count);
+		src->set_buffer_size(active_sample_count);
 		dc_cancel.at(i)->set_buffer_size(active_sample_count);
 	}
 	if (mixed_source) {
@@ -3921,14 +3922,14 @@ void Oscilloscope::update_chn_settings_panel(int id)
 		ch_ui->label_3->setVisible(true);
 		ch_ui->cmbMemoryDepth->setVisible(true);
 		ch_ui->btnAutoset->setVisible(true);
-		ch_ui->filter_TC->setText(QString::number(iio->freq_comp_filt[current_ch_widget][0]->get_TC()));
-		ch_ui->filter2_TC->setText(QString::number(iio->freq_comp_filt[current_ch_widget][1]->get_TC()));
-		ch_ui->filter_gain->setText(QString::number(iio->freq_comp_filt[current_ch_widget][0]->get_filter_gain()));
-		ch_ui->filter2_gain->setText(QString::number(iio->freq_comp_filt[current_ch_widget][1]->get_filter_gain()));
+		ch_ui->filter_TC->setText(QString::number(src->freq_comp_filt[current_ch_widget][0]->get_TC()));
+		ch_ui->filter2_TC->setText(QString::number(src->freq_comp_filt[current_ch_widget][1]->get_TC()));
+		ch_ui->filter_gain->setText(QString::number(src->freq_comp_filt[current_ch_widget][0]->get_filter_gain()));
+		ch_ui->filter2_gain->setText(QString::number(src->freq_comp_filt[current_ch_widget][1]->get_filter_gain()));
 		ch_ui->filter_en->setText(tr("Filter 1 - Enable - ") + getChannelRangeStringVDivHelper(id));
 		ch_ui->filter2_en->setText(tr("Filter 2 - Enable - ") + getChannelRangeStringVDivHelper(id));
-		ch_ui->filter_en->setChecked(iio->freq_comp_filt[current_ch_widget][0]->get_enable());
-		ch_ui->filter2_en->setChecked(iio->freq_comp_filt[current_ch_widget][1]->get_enable());
+		ch_ui->filter_en->setChecked(src->freq_comp_filt[current_ch_widget][0]->get_enable());
+		ch_ui->filter2_en->setChecked(src->freq_comp_filt[current_ch_widget][1]->get_enable());
 	}
 
 	auto max_elem = max_element(probe_attenuation.begin(), probe_attenuation.begin() + nb_channels);
@@ -4589,9 +4590,9 @@ void Oscilloscope::setupAutosetFreqSweep()
 	writeAllSettingsToHardware();
 	last_set_sample_count = active_sample_count;
 	autosetFFT();
-	iio->set_buffer_size(autoset_id[0], autoset_fft_size);
+	src->set_buffer_size(autoset_fft_size);
 	for (unsigned int i = 0; i < nb_channels; i++) {
-		iio->set_buffer_size(ids[i], autoset_fft_size);
+		src->set_buffer_size(autoset_fft_size);
 		dc_cancel.at(i)->set_buffer_size(active_sample_count);
 	}
 	if (mixed_source) {
@@ -5015,8 +5016,8 @@ void Oscilloscope::setGainMode(uint chnIdx, libm2k::analog::M2K_RANGE gain_mode)
 
 	boost::shared_ptr<adc_sample_conv> block = dynamic_pointer_cast<adc_sample_conv>(adc_samp_conv_block);
 
-	iio->freq_comp_filt[chnIdx][0]->set_high_gain(gain_mode);
-	iio->freq_comp_filt[chnIdx][1]->set_high_gain(gain_mode);
+	src->freq_comp_filt[chnIdx][0]->set_high_gain(gain_mode);
+	src->freq_comp_filt[chnIdx][1]->set_high_gain(gain_mode);
 	update_chn_settings_panel(chnIdx);
 	trigger_settings.updateHwVoltLevels(chnIdx);
 }
@@ -5081,8 +5082,8 @@ void Oscilloscope::writeAllSettingsToHardware()
 	}
 	for(auto i=0;i<nb_channels;i++)
 	{
-		iio->freq_comp_filt[i][0]->set_sample_rate(active_sample_rate);
-		iio->freq_comp_filt[i][1]->set_sample_rate(active_sample_rate);
+		src->freq_comp_filt[i][0]->set_sample_rate(active_sample_rate);
+		src->freq_comp_filt[i][1]->set_sample_rate(active_sample_rate);
 	}
 
 	// Writes all trigger settings to hardware

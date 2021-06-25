@@ -40,6 +40,7 @@
 /* libm2k includes */
 #include <libm2k/analog/m2kanalogin.hpp>
 #include <libm2k/m2k.hpp>
+#include <m2ksource.h>
 
 namespace Ui {
 	class DMM;
@@ -69,6 +70,7 @@ namespace adiscope {
 		unsigned int m_adc_nb_channels;
 		Ui::DMM *ui;
 		boost::shared_ptr<iio_manager> manager;
+		boost::shared_ptr<M2kSource> src;
 		iio_manager::port_id id_ch1, id_ch2;
 		boost::shared_ptr<signal_sample> signal;
 		unsigned long sample_rate;

@@ -74,7 +74,7 @@ namespace adiscope {
 		 * This function returns the ID, that can later be used with
 		 * start() and stop().
 		 * Warning: the flowgraph needs to be locked first! */
-		port_id connect(gr::basic_block_sptr dst, int src_port,
+		port_id connect(gr::basic_block_sptr src, gr::basic_block_sptr dst, int src_port,
 				int dst_port, bool use_float = false,
 				unsigned long buffer_size = IIO_BUFFER_SIZE);
 
@@ -101,10 +101,6 @@ namespace adiscope {
 		/* Returns true if the GNU Radio flowgraph is running */
 		bool started() { return _started; }
 
-		/* Change the buffer size at runtime.
-		 * Warning: the flowgraph needs to be locked first! */
-		void set_buffer_size(port_id id, unsigned long size);
-		void set_filter_parameters(int channel, int index, bool enable, float TC, float gain, float sample_rate );
 
 		/* VERY ugly hack. The reconfiguration that happens after
 		 * locking/unlocking the flowgraph is sort of broken; the tags
@@ -115,50 +111,28 @@ namespace adiscope {
 			gr::top_block::stop();
 			// cancel acquisition, work might be blocked waiting for a trigger
 			// and the timeout. Don't wait for it just cancel the acquisition
-//			m_analogin->cancelAcquisition();
-//			m_analogin->stopAcquisition();
-//			m_context->stopMixedSignalAcquisition();
-//			m_analogin->cancelAcquisition();
-//			m_context->getDigital()->cancelAcquisition();
-
-//			m_context->stopMixedSignalAcquisition();
-
 			gr::top_block::wait();
 		}
 		void unlock() {
-//			m_context->startMixedSignalAcquisition(buffer_size);
 			gr::top_block::start(); }
 
-		/* Set the timeout for the source device */
-		void set_device_timeout(unsigned int mseconds);
 
-		/* Replace the iio_block source with the mixed source */
-		void enableMixedSignal(gr::m2k::mixed_signal_source::sptr mixed_source);
+		void addSource(gr::basic_block_sptr blk);
+		void replaceBlock(gr::basic_block_sptr src, gr::basic_block_sptr dst);
+		void deleteSource(gr::basic_block_sptr todelete);
 
-		/* Bring back the data from the iio_block source */
-		void disableMixedSignal(gr::m2k::mixed_signal_source::sptr mixed_source);
+		std::vector<gr::basic_block_sptr> getSources() const;
+		unsigned int getNrOfSources() const;
 
-		adiscope::frequency_compensation_filter::sptr freq_comp_filt[2][2];
-
-	private:
-		libm2k::analog::M2kAnalogIn *m_analogin;
-		libm2k::context::M2k *m_context;
-
+	private:		
 		static std::map<const std::string, map_entry> dev_map;
 		static unsigned _id;
+
 		std::mutex copy_mutex;
 		bool _started;
-
-		unsigned long buffer_size;
-		std::vector<unsigned long> buffer_sizes;
-
+		std::vector<gr::basic_block_sptr> sources;
 		std::vector<std::pair<port_id, unsigned long> > copy_blocks;
-
-		gr::m2k::analog_in_source::sptr iio_block;
-		unsigned int nb_channels;
-
-		boost::shared_ptr<timeout_block> timeout_b;
-		gr::m2k::mixed_signal_source::sptr m_mixed_source;
+		std::string name;
 
 		struct connection {
 			gr::basic_block_sptr src;
@@ -168,19 +142,12 @@ namespace adiscope {
 
 		std::vector<connection> connections;
 
-		iio_manager(unsigned int id, struct iio_context *ctx,
-				const std::string &dev,
-				unsigned long buffer_size);
-
+		iio_manager(unsigned int block_id,
+			     struct iio_context *ctx, const std::string &_dev,
+			     unsigned long _buffer_size = 1024);
 		void del_connection(gr::basic_block_sptr block, bool reverse);
-
 		void update_buffer_size_unlocked();
 
-	private Q_SLOTS:
-		void got_timeout();
-
-	Q_SIGNALS:
-		void timeout();
 	};
 }
 

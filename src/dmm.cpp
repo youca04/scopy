@@ -79,6 +79,8 @@ DMM::DMM(struct iio_context *ctx, Filter *filt, ToolMenuItem *toolMenuItem,
 {
 	ui->setupUi(this);
 
+	src = boost::dynamic_pointer_cast<M2kSource>(manager->getSources()[0]);
+
 	/* TODO: avoid hardcoding sample rate */
 	sample_rate = 1e5;
 
@@ -581,8 +583,8 @@ void DMM::configureModes()
 	const bool is_ac_ch1 = ui->btn_ch1_ac->isChecked();
 	const bool is_ac_ch2 = ui->btn_ch2_ac->isChecked();
 
-	id_ch1 = manager->connect(s2f1, 0, 0, false, sample_rate / 10);
-	id_ch2 = manager->connect(s2f2, 1, 0, false, sample_rate / 10);
+	id_ch1 = manager->connect(src, s2f1, 0, 0, false, sample_rate / 10);
+	id_ch2 = manager->connect(src, s2f2, 1, 0, false, sample_rate / 10);
 
 	manager->connect(s2f1, 0, stv1, 0);
 	manager->connect(s2f2, 0, stv2, 0);

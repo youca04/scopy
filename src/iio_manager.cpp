@@ -26,12 +26,14 @@
 
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/short_to_float.h>
+#include <m2ksource.h>
 
+
+#include <algorithm>
 #include <iio.h>
 using namespace adiscope;
 using namespace gr;
 
-static const int KERNEL_BUFFERS_DEFAULT = 4;
 std::map<const std::string, iio_manager::map_entry> iio_manager::dev_map;
 unsigned iio_manager::_id = 0;
 
@@ -40,65 +42,9 @@ iio_manager::iio_manager(unsigned int block_id,
 		unsigned long _buffer_size) :
 	QObject(nullptr),
 	top_block("IIO Manager " + std::to_string(block_id)),
-	id(block_id), _started(false), buffer_size(_buffer_size),
-	m_mixed_source(nullptr)
+	id(block_id), _started(false), name(_dev)
 {
-	m_context = libm2k::context::m2kOpen(ctx, "");
-	m_analogin = m_context->getAnalogIn();
-	if (!ctx)
-		throw std::runtime_error("IIO context not created");
 
-	struct iio_device *dev = iio_context_find_device(ctx, _dev.c_str());
-	if (!dev)
-		throw std::runtime_error("Device not found");
-
-	nb_channels = iio_device_get_channels_count(dev);
-
-	iio_block = gr::m2k::analog_in_source::make_from(m_context,
-							     _buffer_size,
-							     {1, 1},
-							     {0, 0},
-							     10000,
-							     1,
-							     KERNEL_BUFFERS_DEFAULT,
-							     false,
-							     false,
-							     {0, 0},
-							     {0, 0},
-							     0,
-							     0,
-							     {0, 0},
-							     false,
-							     false);
-
-	/* Avoid unconnected channel errors by connecting a dummy sink */
-	auto dummy_copy = blocks::copy::make(sizeof(short));
-	auto dummy = blocks::null_sink::make(sizeof(short));
-
-
-	//TODO - make dynamic
-	freq_comp_filt[0][0] = adiscope::frequency_compensation_filter::make(false);
-	freq_comp_filt[0][1] = adiscope::frequency_compensation_filter::make(false);
-	freq_comp_filt[1][0] = adiscope::frequency_compensation_filter::make(false);
-	freq_comp_filt[1][1] = adiscope::frequency_compensation_filter::make(false);
-
-	for (unsigned i = 0; i < nb_channels; i++) {
-		hier_block2::connect(iio_block,i,freq_comp_filt[i][0],0);
-		hier_block2::connect(freq_comp_filt[i][0],0,freq_comp_filt[i][1],0);
-
-		hier_block2::connect(freq_comp_filt[i][1], 0, dummy_copy, i);
-
-		hier_block2::connect(dummy_copy, i, dummy, i);
-
-	}
-
-	dummy_copy->set_enabled(true);
-
-	timeout_b = gnuradio::get_initial_sptr(new timeout_block("msg"));
-	hier_block2::msg_connect(iio_block, "msg", timeout_b, "msg");
-
-	QObject::connect(&*timeout_b, SIGNAL(timeout()), this,
-			SLOT(got_timeout()));
 }
 
 iio_manager::~iio_manager()
@@ -146,7 +92,7 @@ boost::shared_ptr<iio_manager> iio_manager::get_instance(
 	return shared_manager;
 }
 
-iio_manager::port_id iio_manager::connect(basic_block_sptr dst,
+iio_manager::port_id iio_manager::connect(basic_block_sptr src, basic_block_sptr dst,
 		int src_port, int dst_port, bool use_float,
 		unsigned long _buffer_size)
 {
@@ -162,14 +108,14 @@ iio_manager::port_id iio_manager::connect(basic_block_sptr dst,
 
 	/* Connect the IIO block to the valve, and the valve to the
 	 * destination block */
-	iio_manager::connect(freq_comp_filt[src_port][1], 0, copy, 0);
+	iio_manager::connect(src, src_port, copy, 0);
 
 	/* TODO: Find a way to share one short_to_float block per channel,
 	 * instead of having each client instanciate its own */
 	if (use_float) {
 		auto s2f = blocks::short_to_float::make();
 		iio_manager::connect(copy, 0, s2f, 0);
-		iio_manager::connect(s2f, 0, dst, dst_port);
+		iio_manager::connect(s2f, 0, dst, dst_port);		
 	} else {
 		iio_manager::connect(copy, 0, dst, dst_port);
 	}
@@ -196,24 +142,6 @@ void iio_manager::disconnect(iio_manager::port_id copy)
 	hier_block2::disconnect(copy);
 }
 
-void iio_manager::update_buffer_size_unlocked()
-{
-	unsigned long size = 0;
-
-	for (auto it = copy_blocks.begin(); it != copy_blocks.end(); ++it) {
-		if (it->first->enabled() && size < it->second)
-			size = it->second;
-	}
-
-	if (size) {
-		iio_block->set_buffer_size(size);
-		if (m_mixed_source) {
-			m_mixed_source->set_buffer_size(size);
-		}
-		this->buffer_size = size;
-	}
-}
-
 void iio_manager::start(iio_manager::port_id copy)
 {
 	std::unique_lock<std::mutex> lock(copy_mutex);
@@ -234,12 +162,54 @@ void iio_manager::start(iio_manager::port_id copy)
 	_started = true;
 }
 
-void iio_manager::set_filter_parameters(int channel, int index, bool enable, float TC, float gain, float sample_rate )
+
+void iio_manager::addSource(gr::basic_block_sptr blk)
 {
-	freq_comp_filt[channel][index]->set_enable(enable);
-	freq_comp_filt[channel][index]->set_TC(TC);
-	freq_comp_filt[channel][index]->set_filter_gain(gain);
-	freq_comp_filt[channel][index]->set_sample_rate(sample_rate);
+	sources.push_back(blk);
+}
+void iio_manager::replaceBlock(gr::basic_block_sptr src, gr::basic_block_sptr dst)
+{
+	unsigned int i=0;
+
+	for(i = 0; i < connections.size(); i++) {
+		if(connections[i].src == src) {
+			hier_block2::disconnect(connections[i].src, connections[i].src_port, connections[i].dst, connections[i].dst_port);
+			hier_block2::connect(dst, connections[i].src_port, connections[i].dst, connections[i].dst_port);
+			connections[i].src = dst;
+		}
+		if(connections[i].dst == src) {
+			hier_block2::disconnect(connections[i].src, connections[i].src_port, connections[i].dst, connections[i].dst_port);
+			hier_block2::connect(connections[i].src, connections[i].src_port, dst, connections[i].dst_port);
+			connections[i].dst = src;
+		}
+	}
+	for(unsigned int i=0;i< sources.size();i++) {
+		if(sources[i] == src)
+			sources[i] = dst;
+	}
+
+}
+void iio_manager::deleteSource(gr::basic_block_sptr todelete)
+{
+
+}
+
+std::vector<gr::basic_block_sptr> iio_manager::getSources() const
+{
+	return sources;
+}
+void iio_manager::update_buffer_size_unlocked()
+{
+	unsigned long size = 0;
+
+	for (auto it = copy_blocks.begin(); it != copy_blocks.end(); ++it) {
+		if (it->first->enabled() && size < it->second)
+			size = it->second;
+	}
+
+	if (size) {
+		boost::dynamic_pointer_cast<M2kSource>(sources[0])->set_buffer_size(size);
+	}
 }
 
 void iio_manager::stop(iio_manager::port_id copy)
@@ -288,8 +258,8 @@ void iio_manager::connect(gr::basic_block_sptr src, int src_port,
 	hier_block2::connect(src, src_port, dst, dst_port);
 }
 
-void iio_manager::disconnect(basic_block_sptr src, int src_port,
-		basic_block_sptr dst, int dst_port)
+void iio_manager::disconnect(gr::basic_block_sptr src, int src_port,
+		gr::basic_block_sptr dst, int dst_port)
 {
 	for (auto it = connections.begin(); it != connections.end(); ++it) {
 		if (it->src == src && it->dst == dst &&
@@ -313,7 +283,9 @@ void iio_manager::del_connection(gr::basic_block_sptr block, bool reverse)
 		for (auto it = connections.begin();
 				it != connections.end(); ++it) {
 			if (reverse) {
-				if (block != it->dst || it->src == freq_comp_filt[0][1] || it->src == freq_comp_filt[1][1])
+				bool isSource = std::find(sources.begin(),sources.end(),it->src) != sources.end();
+
+				if (block != it->dst || isSource)
 					continue;
 			} else if (block != it->src) {
 				continue;
@@ -342,63 +314,4 @@ void iio_manager::del_connection(gr::basic_block_sptr block, bool reverse)
 
 	if (reverse)
 		del_connection(block, false);
-}
-
-void iio_manager::set_buffer_size(iio_manager::port_id copy, unsigned long size)
-{
-	std::unique_lock<std::mutex> lock(copy_mutex);
-
-	for (auto it = copy_blocks.begin(); it != copy_blocks.end(); ++it) {
-		if (it->first == copy) {
-			it->second = size;
-			break;
-		}
-	}
-
-	update_buffer_size_unlocked();
-}
-
-void iio_manager::got_timeout()
-{
-	Q_EMIT timeout();
-}
-
-void iio_manager::set_device_timeout(unsigned int mseconds)
-{
-	iio_block->set_timeout_ms(mseconds);
-	if (m_mixed_source) {
-		m_mixed_source->set_timeout_ms(mseconds);
-	}
-}
-
-void iio_manager::enableMixedSignal(m2k::mixed_signal_source::sptr mixed_source)
-{
-	for (int i = 0; i < nb_channels; ++i) {
-		hier_block2::disconnect(iio_block, i, freq_comp_filt[i][0], 0);
-		hier_block2::connect(mixed_source, i, freq_comp_filt[i][0], 0);
-	}
-
-	hier_block2::msg_disconnect(iio_block, "msg", timeout_b, "msg");
-	hier_block2::msg_connect(mixed_source, "msg", timeout_b, "msg");
-
-	m_mixed_source = mixed_source;
-}
-
-void iio_manager::disableMixedSignal(m2k::mixed_signal_source::sptr mixed_source)
-{
-	for (int i = 0; i < nb_channels; ++i) {
-		hier_block2::disconnect(mixed_source, i, freq_comp_filt[i][0], 0);
-		hier_block2::connect(iio_block, i, freq_comp_filt[i][0], 0);
-	}
-
-	hier_block2::msg_disconnect(mixed_source, "msg", timeout_b, "msg");
-	hier_block2::msg_connect(iio_block, "msg", timeout_b, "msg");
-
-	m_mixed_source = nullptr;
-	try {
-		m_analogin->setKernelBuffersCount(KERNEL_BUFFERS_DEFAULT);
-	} catch (libm2k::m2k_exception &e) {
-		HANDLE_EXCEPTION(e)
-		qDebug() << e.what();
-	}
 }

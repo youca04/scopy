@@ -78,6 +78,7 @@
 #include <m2k/digital_in_source.h>
 #include "logic_analyzer_sink.h"
 #include "mixed_signal_sink.h"
+#include <m2ksource.h>
 
 /*Generated UI */
 #include "ui_math_panel.h"
@@ -333,6 +334,7 @@ namespace adiscope {
 		adiscope::xy_sink_c::sptr qt_xy_block;
 		adiscope::histogram_sink_f::sptr qt_hist_block;
 		boost::shared_ptr<iio_manager> iio;
+		boost::shared_ptr<M2kSource> src;
 		gr::basic_block_sptr adc_samp_conv_block;
 
 		QMap<QString, QPair<gr::basic_block_sptr,

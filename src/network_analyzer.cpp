@@ -64,7 +64,7 @@
 #include <libm2k/m2kexceptions.hpp>
 #include "scopyExceptionHandler.h"
 
-static const int KERNEL_BUFFERS_DEFAULT = 4;
+//static const int KERNEL_BUFFERS_DEFAULT = 4;
 
 using namespace adiscope;
 using namespace gr;
@@ -205,6 +205,9 @@ NetworkAnalyzer::NetworkAnalyzer(struct iio_context *ctx, Filter *filt,
 			m_m2k_analogout->setKernelBuffersCount(0, 1);
 			m_m2k_analogout->setKernelBuffersCount(1, 1);
 		}
+
+		src = boost::dynamic_pointer_cast<M2kSource>(iio->getSources()[0]);
+
 	}
 
 	ui->setupUi(this);
@@ -1132,20 +1135,20 @@ void NetworkAnalyzer::computeFrequencyArray()
 
 void NetworkAnalyzer::setFilterParameters()
 {
-	f11->set_enable(iio->freq_comp_filt[0][0]->get_enable());
-	f12->set_enable(iio->freq_comp_filt[0][1]->get_enable());
-	f21->set_enable(iio->freq_comp_filt[1][0]->get_enable());
-	f22->set_enable(iio->freq_comp_filt[1][1]->get_enable());
+	f11->set_enable(src->freq_comp_filt[0][0]->get_enable());
+	f12->set_enable(src->freq_comp_filt[0][1]->get_enable());
+	f21->set_enable(src->freq_comp_filt[1][0]->get_enable());
+	f22->set_enable(src->freq_comp_filt[1][1]->get_enable());
 
-	f11->set_TC(iio->freq_comp_filt[0][0]->get_TC());
-	f12->set_TC(iio->freq_comp_filt[0][1]->get_TC());
-	f21->set_TC(iio->freq_comp_filt[1][0]->get_TC());
-	f22->set_TC(iio->freq_comp_filt[1][1]->get_TC());
+	f11->set_TC(src->freq_comp_filt[0][0]->get_TC());
+	f12->set_TC(src->freq_comp_filt[0][1]->get_TC());
+	f21->set_TC(src->freq_comp_filt[1][0]->get_TC());
+	f22->set_TC(src->freq_comp_filt[1][1]->get_TC());
 
-	f11->set_filter_gain(iio->freq_comp_filt[0][0]->get_filter_gain());
-	f12->set_filter_gain(iio->freq_comp_filt[0][1]->get_filter_gain());
-	f21->set_filter_gain(iio->freq_comp_filt[1][0]->get_filter_gain());
-	f22->set_filter_gain(iio->freq_comp_filt[1][1]->get_filter_gain());
+	f11->set_filter_gain(src->freq_comp_filt[0][0]->get_filter_gain());
+	f12->set_filter_gain(src->freq_comp_filt[0][1]->get_filter_gain());
+	f21->set_filter_gain(src->freq_comp_filt[1][0]->get_filter_gain());
+	f22->set_filter_gain(src->freq_comp_filt[1][1]->get_filter_gain());
 
 	if (m_m2k_analogin) {
 		try {

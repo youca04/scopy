@@ -1457,14 +1457,16 @@ QPair<bool, bool> adiscope::ToolLauncher::calibrate()
 			// if it's calibrated and skip_calibration_if_calibrated - do not calibrate
 			if (!(initialCalibrationFlag && skip_calibration_if_already_calibrated && calib->isCalibrated() )) {
 				statusLabel = tr("Calibrating ... ");
-				ok = calib->calibrateAll();
+				ok=true;
+				//ok = calib->calibrateAll();
 			} else {
 				statusLabel = tr("Calibration skipped because already calibrated.");
 				skipCalib = true;
 				ok = true;
 			}
 		}
-		ok = calib->calibrateAll();
+		//ok = calib->calibrateAll();
+		ok = true;
 	}
 	QMetaObject::invokeMethod(selectedDev->infoPage(),
 				  "setCalibrationStatusLabel",
@@ -1535,7 +1537,7 @@ void adiscope::ToolLauncher::enableAdcBasedTools()
 			});
 		}
 
-		if (filter->compatible((TOOL_NETWORK_ANALYZER))) {
+		/*if (filter->compatible((TOOL_NETWORK_ANALYZER))) {
 
 			network_analyzer = new NetworkAnalyzer(ctx, filter, menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER), &js_engine, this);
 			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER)->getToolStopBtn());
@@ -1544,7 +1546,7 @@ void adiscope::ToolLauncher::enableAdcBasedTools()
 				menu->getToolMenuItemFor(TOOL_NETWORK_ANALYZER)->getToolBtn()->click();
 			});
 			network_analyzer->setOscilloscope(oscilloscope);
-		}
+		}*/
 
 		m_adc_tools_failed = false;
 		Q_EMIT adcToolsCreated();
@@ -1615,6 +1617,9 @@ bool adiscope::ToolLauncher::switchContext(const QString& uri)
 
 	filter = new Filter(ctx);
 
+	iio = iio_manager::get_instance(ctx,filter->device_name(TOOL_DMM));
+	auto m2k = M2kSource::make(ctx);
+	iio->addSource(m2k);
 	calib = new Calibration(ctx, &js_engine);
 	calib->initialize();
 

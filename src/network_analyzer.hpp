@@ -51,6 +51,7 @@
 #include "cancel_dc_offset_block.h"
 #include <gnuradio/blocks/vector_source.h>
 #include "frequency_compensation_filter.h"
+#include <m2ksource.h>
 
 #include <QStackedWidget>
 #include "oscilloscope.hpp"
@@ -97,6 +98,7 @@ private:
 	libm2k::analog::M2kAnalogIn* m_m2k_analogin;
 	unsigned int m_adc_nb_channels, m_dac_nb_channels;
 	boost::shared_ptr<iio_manager> iio;
+	boost::shared_ptr<M2kSource> src;
 	bool m_initFlowgraph;
 
 	// Sine generation blocks
