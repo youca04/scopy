@@ -161,7 +161,7 @@ SpectrumAnalyzer::SpectrumAnalyzer(struct iio_context *ctx, Filter *filt,
 			m_adc_nb_channels = m_generic_analogin->getNbChannels();
 		}
 		iio = iio_manager::get_instance(ctx, adc_name);
-		src = boost::dynamic_pointer_cast<M2kSource>(iio->getSources()[0]);
+		src = boost::dynamic_pointer_cast<GRSource>(iio->getSources()[0]);
 
 		for (unsigned int i = 0; i < m_adc_nb_channels; i++) {
 			channel_names.push_back(

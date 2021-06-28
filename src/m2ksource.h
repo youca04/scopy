@@ -9,12 +9,13 @@
 #include <libm2k/contextbuilder.hpp>
 #include <libm2k/analog/m2kanalogin.hpp>
 #include <timeout_block.hpp>
+#include <grsource.h>
 
 /* 1k samples by default */
 #define IIO_BUFFER_SIZE 0x400
 static const int KERNEL_BUFFERS_DEFAULT = 4;
 
-class M2kSource : public QObject, public gr::hier_block2
+class M2kSource : public GRSource
 {
 	Q_OBJECT
 private:
@@ -26,9 +27,6 @@ private:
 
 	libm2k::analog::M2kAnalogIn *m_analogin;
 	libm2k::context::M2k *m_context;
-	unsigned int nb_channels;
-	unsigned long buffer_size;
-
 
 
 public:
@@ -49,9 +47,6 @@ public:
 	void update_buffer_size_unlocked();
 
 	void set_device_timeout(unsigned int mseconds);
-
-private Q_SLOTS:
-	void got_timeout();
 
 Q_SIGNALS:
 	void timeout();

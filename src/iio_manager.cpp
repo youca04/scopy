@@ -26,8 +26,6 @@
 
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/short_to_float.h>
-#include <m2ksource.h>
-
 
 #include <algorithm>
 #include <iio.h>
@@ -208,7 +206,7 @@ void iio_manager::update_buffer_size_unlocked()
 	}
 
 	if (size) {
-		boost::dynamic_pointer_cast<M2kSource>(sources[0])->set_buffer_size(size);
+		boost::dynamic_pointer_cast<GRSource>(sources[0])->set_buffer_size(size);
 	}
 }
 

@@ -71,6 +71,9 @@
 #include <libm2k/digital/m2kdigital.hpp>
 #include "scopyExceptionHandler.h"
 
+#include <m2ksource.h>
+#include <iiosource.h>
+
 #define TIMER_TIMEOUT_MS 5000
 #define ALIVE_TIMER_TIMEOUT_MS 5000
 
@@ -1438,7 +1441,7 @@ QPair<bool, bool> adiscope::ToolLauncher::initialCalibration()
 
 QPair<bool, bool> adiscope::ToolLauncher::calibrate()
 {
-	bool ok=false;
+	bool ok=true;
 	calibrating = true;
 
 	bool skipCalib = false;
@@ -1490,7 +1493,7 @@ QPair<bool, bool> adiscope::ToolLauncher::calibrate()
 void adiscope::ToolLauncher::enableAdcBasedTools()
 {
 	try {
-		if (filter->compatible(TOOL_OSCILLOSCOPE)) {
+	/*	if (filter->compatible(TOOL_OSCILLOSCOPE)) {
 			oscilloscope = new Oscilloscope(ctx, filter, menu->getToolMenuItemFor(TOOL_OSCILLOSCOPE),
 							&js_engine, this);
 			toolList.push_back(oscilloscope);
@@ -1501,9 +1504,9 @@ void adiscope::ToolLauncher::enableAdcBasedTools()
 			if (logic_analyzer) {
 				oscilloscope->setLogicAnalyzer(logic_analyzer);
 			}
-		}
+		}*/
 
-		if (filter->compatible(TOOL_DMM)) {
+		/*if (filter->compatible(TOOL_DMM)) {
 			dmm = new DMM(ctx, filter, menu->getToolMenuItemFor(TOOL_DMM),
 				      &js_engine, this);
 			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_DMM)->getToolStopBtn());
@@ -1511,7 +1514,7 @@ void adiscope::ToolLauncher::enableAdcBasedTools()
 			connect(dmm, &DMM::showTool, [=]() {
 				menu->getToolMenuItemFor(TOOL_DMM)->getToolBtn()->click();
 			});
-		}
+		}*/
 
 		if (filter->compatible(TOOL_DEBUGGER)) {
 			debugger = new Debugger(ctx, filter,menu->getToolMenuItemFor(TOOL_DEBUGGER),
@@ -1521,12 +1524,12 @@ void adiscope::ToolLauncher::enableAdcBasedTools()
 					 &ToolLauncher::addDebugWindow);
 		}
 
-		if (filter->compatible(TOOL_CALIBRATION)) {
+		/*if (filter->compatible(TOOL_CALIBRATION)) {
 			manual_calibration = new ManualCalibration(ctx, filter,menu->getToolMenuItemFor(TOOL_CALIBRATION),
 								   &js_engine, this, calib);
 			adc_users_group.addButton(menu->getToolMenuItemFor(TOOL_CALIBRATION)->getToolStopBtn());
 			toolList.push_back(manual_calibration);
-		}
+		}*/
 
 		if (filter->compatible(TOOL_SPECTRUM_ANALYZER)) {
 			spectrum_analyzer = new SpectrumAnalyzer(ctx, filter, menu->getToolMenuItemFor(TOOL_SPECTRUM_ANALYZER),&js_engine, this);
@@ -1559,7 +1562,7 @@ void adiscope::ToolLauncher::enableAdcBasedTools()
 
 void adiscope::ToolLauncher::enableDacBasedTools()
 {
-	try {
+	/*try {
 		if (filter->compatible(TOOL_SIGNAL_GENERATOR)) {
 			signal_generator = new SignalGenerator(ctx, filter,
 							       menu->getToolMenuItemFor(TOOL_SIGNAL_GENERATOR), &js_engine, this);
@@ -1588,7 +1591,7 @@ void adiscope::ToolLauncher::enableDacBasedTools()
 
 	if (m_adc_tools_failed || m_dac_tools_failed) {
 		disconnect();
-	}
+	}*/
 }
 
 bool adiscope::ToolLauncher::switchContext(const QString& uri)
@@ -1612,13 +1615,13 @@ bool adiscope::ToolLauncher::switchContext(const QString& uri)
 
 	m_m2k = m2kOpen(ctx, "");
 #ifdef LIBM2K_ENABLE_LOG
-	m_m2k->logAllAttributes();
+//	m_m2k->logAllAttributes();
 #endif
 
 	filter = new Filter(ctx);
 
-	iio = iio_manager::get_instance(ctx,filter->device_name(TOOL_DMM));
-	auto m2k = M2kSource::make(ctx);
+	iio = iio_manager::get_instance(ctx,filter->device_name(TOOL_SPECTRUM_ANALYZER));
+	auto m2k = IioSource::make(ctx, filter->device_name(TOOL_SPECTRUM_ANALYZER));
 	iio->addSource(m2k);
 	calib = new Calibration(ctx, &js_engine);
 	calib->initialize();

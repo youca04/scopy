@@ -3,12 +3,14 @@
 		"compatible": [ "siggen", "dmm" ]
 	},
 
-	"FMComms2-4": {
-		"compatible": [ "siggen", "dmm", "osc" ],
+	"AD9361": {
+		"compatible": [ "siggen", "dmm", "osc", "spectrum"],
 		"compatible-devices": [ "cf-ad9361-lpc", "cf-ad9361-dds-core-lpc", "ad9361-phy" ],
 		"osc-devices": [ "cf-ad9361-lpc" ],
 		"dmm-devices": [ "cf-ad9361-lpc" ],
-		"siggen-devices": [ "cf-ad9361-dds-core-lpc" ]
+		"spectrum-devices": [ "cf-ad9361-lpc" ],
+		"siggen-devices": [ "cf-ad9361-dds-core-lpc" ],
+		"debugger": ["cf-ad9361-lpc"]
 	},
 
 	"M2K": {

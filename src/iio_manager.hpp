@@ -41,6 +41,9 @@
 
 #include "timeout_block.hpp"
 
+#include <m2ksource.h>
+#include <iiosource.h>
+
 /* 1k samples by default */
 #define IIO_BUFFER_SIZE 0x400
 

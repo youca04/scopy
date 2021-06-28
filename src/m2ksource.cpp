@@ -6,9 +6,11 @@
 #include <libm2k/m2kexceptions.hpp>
 #include <logging_categories.h>
 
-M2kSource::M2kSource(struct iio_context *ctx, QObject *parent) : QObject(parent), hier_block2("m2k src",
-											      gr::io_signature::make(0, 0, sizeof(short)),
-											      gr::io_signature::make(2, 2, sizeof(short)))
+M2kSource::M2kSource(struct iio_context *ctx, QObject *parent) :
+	GRSource(ctx),
+	gr::hier_block2("m2ksource",
+			gr::io_signature::make(0, 0, sizeof(short)) ,
+			gr::io_signature::make(2, 2, sizeof(short)))
 {
 
 	qDebug(CAT_IIO_MANAGER) << "Creating m2ksource ";
@@ -74,6 +76,7 @@ M2kSource::M2kSource(struct iio_context *ctx, QObject *parent) : QObject(parent)
 
 	QObject::connect(&*timeout_b, SIGNAL(timeout()), this,
 			 SLOT(got_timeout()));
+
 }
 
 M2kSource::~M2kSource() {
@@ -131,7 +134,7 @@ void M2kSource::disableMixedSignal(gr::m2k::mixed_signal_source::sptr mixed_sour
 void M2kSource::set_buffer_size(unsigned long size)
 {
 	//std::unique_lock<std::mutex> lock(copy_mutex);
-buffer_size = size;
+	buffer_size = size;
 	update_buffer_size_unlocked();
 }
 
@@ -146,13 +149,6 @@ void M2kSource::update_buffer_size_unlocked(){
 		this->buffer_size = size;
 	}
 }
-
-
-void M2kSource::got_timeout()
-{
-	Q_EMIT timeout();
-}
-
 
 void M2kSource::set_device_timeout(unsigned int mseconds)
 {

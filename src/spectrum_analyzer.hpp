@@ -45,6 +45,8 @@
 #include <libm2k/m2k.hpp>
 #include <libm2k/generic.hpp>
 #include <m2ksource.h>
+#include <iiosource.h>
+#include <grsource.h>
 
 extern "C" {
 	struct iio_buffer;
@@ -240,7 +242,7 @@ private:
 	iio_manager::port_id *fft_ids;
 
 	boost::shared_ptr<iio_manager> iio;
-	boost::shared_ptr<M2kSource> src;
+	boost::shared_ptr<GRSource> src;
 	const std::string adc_name;
 	unsigned int m_adc_nb_channels;
 	int adc_bits_count;
