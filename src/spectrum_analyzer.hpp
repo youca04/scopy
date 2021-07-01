@@ -288,10 +288,12 @@ class SpectrumChannel: public QObject
 	friend class SpectrumChannel_API;
 
 public:
+	iio_manager::GROutput::sptr m_src;
+
 	boost::shared_ptr<adiscope::fft_block> fft_block;
 	gr::blocks::complex_to_mag_squared::sptr ctm_block;
 
-	SpectrumChannel(int id, const QString& name, FftDisplayPlot *plot);
+	SpectrumChannel(int id, FftDisplayPlot *plot, iio_manager::GROutput::sptr src);
 
 	int id() const
 	{
@@ -334,6 +336,10 @@ public:
 	void setGainMode(int index);
 	libm2k::analog::M2K_RANGE getGainMode();
 	static double win_overlap_factor(SpectrumAnalyzer::FftWinType type);
+
+	iio_manager::GROutput::sptr getSrc() const;
+	void setSrc(iio_manager::GROutput::sptr newSrc);
+
 private:
 	int m_id;
 	QString m_name;

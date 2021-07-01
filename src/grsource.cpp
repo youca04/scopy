@@ -29,3 +29,12 @@ void GRSource::set_device_timeout(unsigned int mseconds) {
 void GRSource::got_timeout() {
 	Q_EMIT timeout();
 }
+
+int GRSource::get_nr_of_outputs()
+{
+	return output_signature()->max_streams();
+}
+int GRSource::get_nr_of_inputs()
+{
+	return input_signature()->max_streams();
+}

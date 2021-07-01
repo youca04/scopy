@@ -9,12 +9,12 @@
 #include <iio.h>
 
 WavSrc_Experimental::WavSrc_Experimental(struct iio_context *ctx, std::string _dev, QObject *parent) :
-	gr::hier_block2("iiosource",
+	gr::hier_block2("wavsource",
 			gr::io_signature::make(0, 0, sizeof(short)) ,
 
 			/*terminate called after throwing an instance of 'std::runtime_error'
 			  what():  Hierarchical blocks do not yet support arbitrary or variable numbers of inputs or outputs (iiosource)*/
-			gr::io_signature::make(2, 2, sizeof(short))),
+			gr::io_signature::make(4, 4, sizeof(short))),
 	GRSource(ctx, parent)
 {
 
@@ -44,6 +44,8 @@ WavSrc_Experimental::WavSrc_Experimental(struct iio_context *ctx, std::string _d
 	}
 
 	hier_block2::connect(f2s,0,self(),1); // TEMP
+	hier_block2::connect(f2s,0,self(),2); // TEMP
+	hier_block2::connect(f2s,0,self(),3); // TEMP
 
 	dummy_copy->set_enabled(true);
 

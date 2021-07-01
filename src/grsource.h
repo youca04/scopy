@@ -4,6 +4,7 @@
 #include <QObject>
 #include <gnuradio/hier_block2.h>
 #include <iio.h>
+#include <boost/shared_ptr.hpp>
 
 
 class GRSource : public QObject, virtual public gr::hier_block2
@@ -22,6 +23,8 @@ public:
 	virtual ~GRSource();
 	//static sptr make(struct iio_context *ctx);
 
+	int get_nr_of_outputs();
+	int get_nr_of_inputs();
 
 	virtual void set_buffer_size(unsigned long size);
 	virtual void update_buffer_size_unlocked() = 0;

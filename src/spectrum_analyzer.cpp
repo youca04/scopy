@@ -146,27 +146,20 @@ SpectrumAnalyzer::SpectrumAnalyzer(struct iio_context *ctx, Filter *filt,
 {
 	initInstrumentStrings();
 	// Get the list of names of the available channels
-	QList<QString> channel_names;
 
 	if (ctx) {
 		auto libm2k_ctx = contextOpen(ctx, "");
 		if (libm2k_ctx->toM2k()) {
 			m_m2k_context = libm2k_ctx->toM2k();
 			m_m2k_analogin = m_m2k_context->getAnalogIn();
-			m_adc_nb_channels = m_m2k_analogin->getNbChannels();
 			m_max_sample_rate = m_m2k_analogin->getMaximumSamplerate();
 		} else {
 			m_generic_context = libm2k_ctx->toGeneric();
 			m_generic_analogin = m_generic_context->getAnalogIn(0);
-			m_adc_nb_channels = m_generic_analogin->getNbChannels();
 		}
 		iio = iio_manager::get_instance(ctx, adc_name);
 		src = boost::dynamic_pointer_cast<GRSource>(iio->getSources()[0]);
-
-		for (unsigned int i = 0; i < m_adc_nb_channels; i++) {
-			channel_names.push_back(
-				QString("Channel %1").arg(i + 1));
-		}
+		m_adc_nb_channels = iio->getNrOfSourceOutputs();
 	}
 	sample_rate = m_max_sample_rate;
 
@@ -228,8 +221,9 @@ SpectrumAnalyzer::SpectrumAnalyzer(struct iio_context *ctx, Filter *filt,
 
 	// Initialize spectrum channels
 	for (int i = 0 ; i < m_adc_nb_channels; i++) {
-		channel_sptr channel = boost::make_shared<SpectrumChannel>(i,
-		                       channel_names[i], fft_plot);
+		auto chSrc = iio->getOutput(i);
+		channel_sptr channel = boost::make_shared<SpectrumChannel>(i, fft_plot, chSrc);
+
 		channel->setColor(fft_plot->getLineColor(i));
 		ui->channelsList->addWidget(channel->widget());
 		channels.push_back(channel);
@@ -1246,7 +1240,7 @@ void SpectrumAnalyzer::build_gnuradio_block_chain()
 	fft_sink = adiscope::scope_sink_f::make(fft_size, m_max_sample_rate,
 						"Osc Frequency", m_adc_nb_channels,
 	                                        (QObject *)fft_plot);
-	fft_sink->set_trigger_mode(TRIG_MODE_TAG, 0, "buffer_start");
+	//fft_sink->set_trigger_mode(TRIG_MODE_TAG, 0, "buffer_start");
 
 	bool started = isIioManagerStarted();
 
@@ -1271,7 +1265,7 @@ void SpectrumAnalyzer::build_gnuradio_block_chain()
 		auto ctm = gr::blocks::complex_to_mag_squared::make(1);
 
 		// iio(i)->fft->ctm->fft_sink
-		fft_ids[i] = iio->connect(src, fft, i, 0, true, fft_size);
+		fft_ids[i] = iio->connect(channels[i]->m_src->src, fft, channels[i]->m_src->port, 0, true, fft_size);
 		iio->connect(fft, 0, ctm, 0);
 		iio->connect(ctm, 0, fft_sink, i);
 
@@ -1889,7 +1883,7 @@ void SpectrumAnalyzer::setFftSize(uint size)
 
 		iio->disconnect(fft_ids[i]);
 
-		fft_ids[i] = iio->connect(src, fft, i, 0, true, fft_size * m_nb_overlapping_avg);
+		fft_ids[i] = iio->connect(channels[i]->m_src->src, fft, channels[i]->m_src->port, 0, true, fft_size * m_nb_overlapping_avg);
 
 		iio->connect(fft, 0, channels[i]->ctm_block, 0);
 		iio->connect(channels[i]->ctm_block, 0, fft_sink, i);
@@ -1901,7 +1895,7 @@ void SpectrumAnalyzer::setFftSize(uint size)
 		channels[i]->fft_block = fft;
 		channels[i]->setFftWindow(channels[i]->fftWindow(), size);
 
-		src->set_buffer_size(size * m_nb_overlapping_avg);
+		iio->set_buffer_size(fft_ids[i], size * m_nb_overlapping_avg);
 	}
 
 	if (started) {
@@ -2426,23 +2420,34 @@ void SpectrumAnalyzer::setCurrentAverageIndexLabel(uint chnIdx)
 /*
  * class SpectrumChannel
  */
-SpectrumChannel::SpectrumChannel(int id, const QString& name,
-                                 FftDisplayPlot *plot):
+
+iio_manager::GROutput::sptr SpectrumChannel::getSrc() const
+{
+	return m_src;
+}
+
+void SpectrumChannel::setSrc(iio_manager::GROutput::sptr newSrc)
+{
+	m_src = newSrc;
+}
+
+SpectrumChannel::SpectrumChannel(int id, FftDisplayPlot *plot, iio_manager::GROutput::sptr src):
+	m_src(src),
 	m_id(id),
-	m_name(name),
 	m_line_width(1.0),
 	m_color(plot->getLineColor(id).name()),
 	m_averaging(1),
-	m_average_current_index(0),
+	m_average_current_index(0),		
+	m_gain_mode(libm2k::analog::PLUS_MINUS_25V),
+	m_average_history(true),
 	m_avg_type(FftDisplayPlot::SAMPLE),
 	m_fft_win(SpectrumAnalyzer::HAMMING),
 	m_plot(plot),
-	m_widget(new ChannelWidget(id, false, false, m_color)),
-	m_average_history(true),
-	m_gain_mode(libm2k::analog::PLUS_MINUS_25V)
+	m_widget(new ChannelWidget(id, false, false, m_color))
+
 {
-	m_widget->setFullName(name);
-	m_widget->setShortName(QString("CH %1").arg(id + 1));
+	m_widget->setFullName(QString::fromStdString(src->name));
+	m_widget->setShortName(QString::fromStdString(src->shortName));
 	m_widget->nameButton()->setText(m_widget->shortName());
 }
 

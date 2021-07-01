@@ -161,11 +161,14 @@ void iio_manager::start(iio_manager::port_id copy)
 }
 
 
-void iio_manager::addSource(gr::basic_block_sptr blk)
+void iio_manager::addSource(GRSource::sptr blk)
 {
 	sources.push_back(blk);
+	for(auto i=0;i<blk->output_signature()->max_streams();i++) {
+		sourceOuputs.push_back(boost::make_shared<GROutput>(blk,i,"CH"+std::to_string(i),"Channel "+std::to_string(i)));
+	}
 }
-void iio_manager::replaceBlock(gr::basic_block_sptr src, gr::basic_block_sptr dst)
+void iio_manager::replaceBlock(GRSource::sptr src, GRSource::sptr dst)
 {
 	unsigned int i=0;
 
@@ -187,15 +190,54 @@ void iio_manager::replaceBlock(gr::basic_block_sptr src, gr::basic_block_sptr ds
 	}
 
 }
-void iio_manager::deleteSource(gr::basic_block_sptr todelete)
+void iio_manager::deleteSource(GRSource::sptr todelete)
 {
 
 }
 
-std::vector<gr::basic_block_sptr> iio_manager::getSources() const
+std::vector<GRSource::sptr> iio_manager::getSources() const
 {
 	return sources;
 }
+
+iio_manager::GROutput::sptr iio_manager::getOutput(int i) const
+{
+	return sourceOuputs[i];
+}
+
+std::vector<iio_manager::GROutput::sptr> iio_manager::getSourceOutputs() const
+{
+	return sourceOuputs;
+}
+
+
+size_t iio_manager::getNrOfSources() const {
+	return sources.size();
+}
+
+size_t iio_manager::getNrOfSourceOutputs() const {
+	auto sum = 0;
+	for(auto &src : sources) {
+		sum+=src->get_nr_of_outputs();
+	}
+	return sum;
+}
+
+
+void iio_manager::set_buffer_size(iio_manager::port_id copy, unsigned long size)
+{
+	std::unique_lock<std::mutex> lock(copy_mutex);
+
+	for (auto it = copy_blocks.begin(); it != copy_blocks.end(); ++it) {
+		if (it->first == copy) {
+			it->second = size;
+			break;
+		}
+	}
+
+	update_buffer_size_unlocked();
+}
+
 void iio_manager::update_buffer_size_unlocked()
 {
 	unsigned long size = 0;
@@ -206,7 +248,9 @@ void iio_manager::update_buffer_size_unlocked()
 	}
 
 	if (size) {
-		boost::dynamic_pointer_cast<GRSource>(sources[0])->set_buffer_size(size);
+		for(auto &src : sources) {
+			src->set_buffer_size(size);
+		}
 	}
 }
 

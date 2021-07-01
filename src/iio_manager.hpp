@@ -43,6 +43,7 @@
 
 #include <m2ksource.h>
 #include <iiosource.h>
+#include <grport.h>
 
 /* 1k samples by default */
 #define IIO_BUFFER_SIZE 0x400
@@ -55,6 +56,20 @@ namespace adiscope {
 	public:
 		typedef boost::weak_ptr<iio_manager> map_entry;
 		typedef gr::blocks::copy::sptr port_id;
+
+		//typedef std::pair<GRSource::sptr, int> GROutput;
+
+		class GROutput {
+			public:
+			typedef boost::shared_ptr<GROutput> sptr;
+			GRSource::sptr src;
+			int port;
+			std::string shortName;
+			std::string name;
+
+			GROutput(GRSource::sptr src, int port, std::string shortName, std::string name) : src(src),port(port),shortName(shortName),name(name) {}
+
+		};
 
 		const unsigned id;
 
@@ -120,12 +135,21 @@ namespace adiscope {
 			gr::top_block::start(); }
 
 
-		void addSource(gr::basic_block_sptr blk);
-		void replaceBlock(gr::basic_block_sptr src, gr::basic_block_sptr dst);
-		void deleteSource(gr::basic_block_sptr todelete);
+		void addSource(GRSource::sptr blk);
+		void replaceBlock(GRSource::sptr src, GRSource::sptr dst);
+		void deleteSource(GRSource::sptr todelete);
 
-		std::vector<gr::basic_block_sptr> getSources() const;
-		unsigned int getNrOfSources() const;
+		GROutput::sptr getOutput(int i) const;
+		std::vector<GROutput::sptr> getSourceOutputs() const;
+
+		std::vector<GRSource::sptr> getSources() const;
+
+		size_t getNrOfSources() const;
+		size_t getNrOfSourceOutputs() const;
+
+		void set_buffer_size(iio_manager::port_id copy, unsigned long size);
+
+
 
 	private:		
 		static std::map<const std::string, map_entry> dev_map;
@@ -133,8 +157,10 @@ namespace adiscope {
 
 		std::mutex copy_mutex;
 		bool _started;
-		std::vector<gr::basic_block_sptr> sources;
-		std::vector<std::pair<port_id, unsigned long> > copy_blocks;
+		std::vector<GRSource::sptr> sources;
+		std::vector<GROutput::sptr> sourceOuputs;
+
+		std::vector<std::pair<port_id, unsigned long> > copy_blocks;		
 		std::string name;
 
 		struct connection {

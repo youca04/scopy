@@ -73,6 +73,7 @@
 
 #include <m2ksource.h>
 #include <iiosource.h>
+#include <wavsrc_experimental.h>
 
 #define TIMER_TIMEOUT_MS 5000
 #define ALIVE_TIMER_TIMEOUT_MS 5000
@@ -1621,7 +1622,9 @@ bool adiscope::ToolLauncher::switchContext(const QString& uri)
 	filter = new Filter(ctx);
 
 	iio = iio_manager::get_instance(ctx,filter->device_name(TOOL_SPECTRUM_ANALYZER));
-	auto m2k = IioSource::make(ctx, filter->device_name(TOOL_SPECTRUM_ANALYZER));
+	auto m2k2 = IioSource::make(ctx,"cf-ad9361-lpc");
+	auto m2k = WavSrc_Experimental::make(ctx, filter->device_name(TOOL_SPECTRUM_ANALYZER));
+	iio->addSource(m2k2);
 	iio->addSource(m2k);
 	calib = new Calibration(ctx, &js_engine);
 	calib->initialize();
