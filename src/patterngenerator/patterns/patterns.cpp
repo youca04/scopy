@@ -2124,6 +2124,7 @@ uint8_t SPIPattern::generate_pattern(uint32_t sample_rate,
 	auto clkActiveBit = 0;
 	auto outputBit = 1;
 	auto csBit = 2;
+	bool clockPolarity = CPOL;
 
 	if (CSPOL) {
 		memset(buffer, (CPOL) ? 0xfffb : 0xfffa, (number_of_samples)*sizeof(short));
@@ -2138,24 +2139,41 @@ uint8_t SPIPattern::generate_pattern(uint32_t sample_rate,
 	buf_ptr += waitClocks * samples_per_bit;
 	auto frameBytesLeft = bytesPerFrame;
 	bool start_new_frame = 1;
+	bool increment = false;
 
 	for (std::deque<uint8_t>::iterator it = v.begin(); it != v.end();
 	     ++it) {
 		uint8_t val = *it;
 		bool oldbit = 0;
-		bool bit;
+		bool bit = (val & 0x80) >> 7;;
 
-		if(CPHA && start_new_frame)
+		/*if(start_new_frame)
 		{
 			for (auto i=samples_per_bit/2; i<samples_per_bit && buf_ptr < buf_ptr_end; i++,buf_ptr++) {
 				*buf_ptr = changeBit(*buf_ptr,csBit,CSPOL);
-				*buf_ptr = changeBit(*buf_ptr,clkActiveBit,!CPOL);
-				*buf_ptr = changeBit(*buf_ptr,outputBit,oldbit);
+				*buf_ptr = changeBit(*buf_ptr,clkActiveBit,CPOL);
+				*buf_ptr = changeBit(*buf_ptr,outputBit,bit);
 			}
-		}
+		}*/
 
-		for (auto j=0; j<8; j++) {
+		for (auto j=0; j<16 + CPHA; j++) {
 
+
+			if(!CPHA) {
+			if(j % 2 == 0)
+				increment = true;
+			else
+				increment = false;
+			}
+			else
+			{
+				if(j % 2 == 1)
+					increment = true;
+				else
+					increment = false;
+			}
+
+			if(increment) {
 			if (msbFirst) {
 				bit = (val & 0x80) >> 7;
 				val = val << 1;
@@ -2163,24 +2181,17 @@ uint8_t SPIPattern::generate_pattern(uint32_t sample_rate,
 				bit = (val & 0x01);
 				val = val >> 1;
 			}
+			}
 
 			for (auto i=0; i<samples_per_bit/2 && buf_ptr < buf_ptr_end; i++,buf_ptr++) {
 				*buf_ptr = changeBit(*buf_ptr,csBit,CSPOL);
-				*buf_ptr = changeBit(*buf_ptr,clkActiveBit,CPOL);
-
-				if (!CPHA) {
-					*buf_ptr = changeBit(*buf_ptr,outputBit,oldbit);
-				} else {
-					*buf_ptr = changeBit(*buf_ptr,outputBit,bit);
-				}
-			}
-
-			for (auto i=samples_per_bit/2; i<samples_per_bit && buf_ptr < buf_ptr_end; i++,buf_ptr++) {
-				*buf_ptr = changeBit(*buf_ptr,csBit,CSPOL);
-				*buf_ptr = changeBit(*buf_ptr,clkActiveBit,!CPOL);
+				*buf_ptr = changeBit(*buf_ptr,clkActiveBit,clockPolarity);
 				*buf_ptr = changeBit(*buf_ptr,outputBit,bit);
 			}
 
+
+
+			clockPolarity = !clockPolarity;
 			oldbit = bit;
 		}
 
